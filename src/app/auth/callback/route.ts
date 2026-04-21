@@ -5,15 +5,18 @@ import { getCurrentUser } from "@/lib/auth";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/dashboard";
+  const next = searchParams.get("next");
 
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      // Upsert the local User record on first login.
-      await getCurrentUser();
-      return NextResponse.redirect(`${origin}${next}`);
+      const user = await getCurrentUser();
+      // If a `next` param was preserved (e.g. from middleware redirect), honor it.
+      // Otherwise send to the role-appropriate home.
+      const destination =
+        next ?? (user?.role === "TECH" ? "/tech" : "/dashboard");
+      return NextResponse.redirect(`${origin}${destination}`);
     }
   }
 

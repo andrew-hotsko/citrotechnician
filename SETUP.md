@@ -17,6 +17,17 @@ are added in later phases.
    - **API**
      - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
      - `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+     - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (server-only; never
+       commit or expose to the browser — it bypasses RLS)
+4. Create a Storage bucket for tech photos and signatures:
+   - **Storage → New bucket**
+   - Name: `job-media`
+   - Public: **yes** (photos are referenced by public URL in service reports)
+   - File size limit: 10 MB
+   - Allowed MIME types: `image/*`
+   - No RLS policies needed for Phase 3 — uploads go through the service role
+     key from server actions. Lock this down when the app ever accepts
+     browser-direct uploads.
 
 ---
 
