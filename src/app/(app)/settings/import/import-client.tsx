@@ -1,8 +1,18 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import Papa from "papaparse";
-import { Upload, FileText, X, AlertCircle, Check, Download } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  X,
+  AlertCircle,
+  Check,
+  Download,
+  Loader2,
+  ArrowLeft,
+  MapPin,
+} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -11,6 +21,7 @@ import {
   FIELD_ORDER,
   type ImportField,
 } from "@/lib/csv-import";
+import { dryRunImport, type DryRunResult } from "@/app/actions/import";
 
 type FileState = {
   name: string;
@@ -18,11 +29,16 @@ type FileState = {
   rows: Record<string, string>[];
 };
 
+type View = "drop" | "mapping" | "validating" | "results";
+
 export function ImportClient() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<FileState | null>(null);
   const [mapping, setMapping] = useState<Record<string, ImportField | null>>({});
   const [dragging, setDragging] = useState(false);
+  const [view, setView] = useState<View>("drop");
+  const [dryRun, setDryRun] = useState<DryRunResult | null>(null);
+  const [pending, start] = useTransition();
 
   function pickFile() {
     inputRef.current?.click();
@@ -44,25 +60,27 @@ export function ImportClient() {
         const headers = results.meta.fields ?? [];
         setFile({ name: f.name, headers, rows });
         setMapping(detectMapping(headers));
+        setView("mapping");
         toast.success(`Parsed ${rows.length} rows`);
       },
-      error: (err) => {
-        toast.error(err.message ?? "Failed to parse CSV");
-      },
+      error: (err) => toast.error(err.message ?? "Failed to parse CSV"),
     });
   }
 
   function clearFile() {
     setFile(null);
     setMapping({});
+    setDryRun(null);
+    setView("drop");
     if (inputRef.current) inputRef.current.value = "";
   }
 
-  // Count how many required fields are currently mapped.
   const mappedRequired = useMemo(() => {
     if (!file) return { mapped: 0, total: 0, missing: [] as ImportField[] };
     const required = FIELD_ORDER.filter((f) => FIELD_META[f].required);
-    const mappedSet = new Set(Object.values(mapping).filter(Boolean) as ImportField[]);
+    const mappedSet = new Set(
+      Object.values(mapping).filter(Boolean) as ImportField[],
+    );
     const missing = required.filter((f) => !mappedSet.has(f));
     return {
       mapped: required.length - missing.length,
@@ -71,10 +89,114 @@ export function ImportClient() {
     };
   }, [file, mapping]);
 
-  if (!file) {
-    return <DropZone dragging={dragging} setDragging={setDragging} onFile={handleFile} onPick={pickFile} inputRef={inputRef} />;
+  function runValidation() {
+    if (!file) return;
+    setView("validating");
+    start(async () => {
+      try {
+        const result = await dryRunImport({
+          rows: file.rows,
+          mapping,
+        });
+        setDryRun(result);
+        setView("results");
+        if (result.summary.errored === 0) {
+          toast.success(`All ${result.summary.total} rows look good`);
+        } else {
+          toast.warning(
+            `${result.summary.valid} ready · ${result.summary.errored} with errors`,
+          );
+        }
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Validation failed");
+        setView("mapping");
+      }
+    });
   }
 
+  // ---------------- drop view ----------------
+  if (view === "drop" || !file) {
+    return (
+      <DropZone
+        dragging={dragging}
+        setDragging={setDragging}
+        onFile={handleFile}
+        onPick={pickFile}
+        inputRef={inputRef}
+      />
+    );
+  }
+
+  // ---------------- validating view ----------------
+  if (view === "validating") {
+    return (
+      <div className="mt-8 rounded-xl border border-neutral-200 bg-white px-6 py-12 text-center">
+        <Loader2 className="h-5 w-5 animate-spin mx-auto text-neutral-500" />
+        <p className="text-[13px] font-medium mt-3">Validating + geocoding…</p>
+        <p className="text-[11px] text-neutral-500 mt-1">
+          Parsing each row and looking up addresses. This takes a few seconds
+          for ~60 rows.
+        </p>
+      </div>
+    );
+  }
+
+  // ---------------- results view ----------------
+  if (view === "results" && dryRun) {
+    const errored = dryRun.rows.filter((r) => r.errors.length > 0);
+    const valid = dryRun.rows.filter((r) => r.errors.length === 0);
+    return (
+      <div className="mt-6 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => setView("mapping")}
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-neutral-200 bg-white text-[12px] font-medium text-neutral-700 hover:border-neutral-300"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            Back to mapping
+          </button>
+          <button
+            type="button"
+            disabled
+            className="inline-flex items-center h-9 px-4 rounded-md bg-neutral-200 text-neutral-500 text-[13px] font-medium cursor-not-allowed"
+          >
+            Import {valid.length} valid {valid.length === 1 ? "row" : "rows"}
+          </button>
+        </div>
+
+        {/* Summary */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <SummaryCell
+            label="Total"
+            value={dryRun.summary.total}
+            tone="neutral"
+          />
+          <SummaryCell
+            label="Ready to import"
+            value={dryRun.summary.valid}
+            tone="emerald"
+          />
+          <SummaryCell
+            label="With errors"
+            value={dryRun.summary.errored}
+            tone={dryRun.summary.errored > 0 ? "amber" : "neutral"}
+          />
+        </div>
+
+        {errored.length > 0 && (
+          <ResultTable title={`${errored.length} rows need fixing`} rows={errored} errored />
+        )}
+        <ResultTable
+          title={`${valid.length} rows ready`}
+          rows={valid}
+          errored={false}
+        />
+      </div>
+    );
+  }
+
+  // ---------------- mapping view ----------------
   return (
     <div className="mt-6 space-y-4">
       {/* File summary */}
@@ -226,18 +348,37 @@ export function ImportClient() {
         </div>
       </section>
 
-      {/* Next-step CTA — disabled until 7.2 / 7.3 ship */}
-      <div className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-neutral-300 bg-white/60 px-4 py-4">
-        <p className="text-[12px] text-neutral-600 leading-relaxed">
-          Next: validate every row, geocode addresses, and import. That flow
-          ships in the follow-up commits.
-        </p>
+      {/* Validate CTA */}
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-4">
+        <div>
+          <p className="text-[13px] font-medium">Validate & geocode</p>
+          <p className="text-[11px] text-neutral-500 mt-0.5">
+            Runs server-side: checks every row and looks up each address.
+            No writes until you confirm.
+          </p>
+        </div>
         <button
           type="button"
-          disabled
-          className="h-9 px-3 rounded-md bg-neutral-200 text-neutral-500 text-[13px] font-medium cursor-not-allowed shrink-0"
+          onClick={runValidation}
+          disabled={pending || mappedRequired.missing.length > 0}
+          className={cn(
+            "inline-flex items-center gap-1.5 h-9 px-4 rounded-md text-[13px] font-medium transition-all shrink-0",
+            pending || mappedRequired.missing.length > 0
+              ? "bg-neutral-200 text-neutral-500 cursor-not-allowed"
+              : "bg-neutral-900 text-white hover:bg-neutral-800",
+          )}
         >
-          Validate & import
+          {pending ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Validating…
+            </>
+          ) : (
+            <>
+              <MapPin className="h-3.5 w-3.5" />
+              Validate {file.rows.length} rows
+            </>
+          )}
         </button>
       </div>
     </div>
@@ -304,14 +445,17 @@ function DropZone({
       </label>
       <div className="mt-3 flex items-center justify-between text-[11px] text-neutral-500">
         <span>
-          Expected columns: {FIELD_ORDER.filter((f) => FIELD_META[f].required).map((f) => FIELD_META[f].label).join(", ")}.
+          Expected columns:{" "}
+          {FIELD_ORDER.filter((f) => FIELD_META[f].required)
+            .map((f) => FIELD_META[f].label)
+            .join(", ")}
+          .
         </span>
         <a
           href="/api/import/template"
           download
           className="inline-flex items-center gap-1 font-medium text-neutral-700 hover:text-neutral-900"
           onClick={(e) => {
-            // 7.4 ships the real template endpoint; guard until then.
             e.preventDefault();
             onPick();
           }}
@@ -390,7 +534,6 @@ function UnmappedRequired({
       <ul className="divide-y divide-neutral-100">
         {required.map((f) => {
           const mapped = mappedSet.has(f);
-          // Which CSV header currently maps to this field?
           const current =
             Object.entries(mapping).find(([, v]) => v === f)?.[0] ?? "";
           return (
@@ -410,7 +553,6 @@ function UnmappedRequired({
                 value={current}
                 onChange={(e) => {
                   const nextHeader = e.target.value;
-                  // Clear any existing header mapped to this field first.
                   const next = { ...mapping };
                   for (const [h, v] of Object.entries(next)) {
                     if (v === f) next[h] = null;
@@ -437,5 +579,108 @@ function UnmappedRequired({
         })}
       </ul>
     </div>
+  );
+}
+
+function SummaryCell({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "neutral" | "emerald" | "amber";
+}) {
+  const dot =
+    tone === "emerald"
+      ? "bg-emerald-500"
+      : tone === "amber"
+        ? "bg-amber-500"
+        : "bg-neutral-400";
+  return (
+    <div className="rounded-xl border border-neutral-200 bg-white p-4">
+      <div className="flex items-center gap-1.5">
+        <span className={cn("h-1.5 w-1.5 rounded-full", dot)} aria-hidden />
+        <span className="text-[10px] font-medium uppercase tracking-wider text-neutral-500">
+          {label}
+        </span>
+      </div>
+      <div className="mt-3 text-[28px] font-semibold tracking-tight tabular-nums leading-none">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function ResultTable({
+  title,
+  rows,
+  errored,
+}: {
+  title: string;
+  rows: DryRunResult["rows"];
+  errored: boolean;
+}) {
+  if (rows.length === 0) return null;
+  return (
+    <section className="rounded-xl border border-neutral-200 bg-white overflow-hidden">
+      <header className="px-4 py-3 border-b border-neutral-100">
+        <h2 className="text-[13px] font-semibold tracking-tight">{title}</h2>
+      </header>
+      <div className="overflow-x-auto">
+        <table className="w-full text-[12px]">
+          <thead className="bg-neutral-50 border-b border-neutral-100">
+            <tr className="text-[10px] uppercase tracking-wider text-neutral-500">
+              <th className="text-left font-medium px-3 py-2 w-10">#</th>
+              <th className="text-left font-medium px-3 py-2">Property</th>
+              <th className="text-left font-medium px-3 py-2">Customer</th>
+              <th className="text-left font-medium px-3 py-2">Geocoded</th>
+              {errored && (
+                <th className="text-left font-medium px-3 py-2">Issue</th>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr
+                key={r.rowIndex}
+                className="border-b border-neutral-100 last:border-b-0"
+              >
+                <td className="px-3 py-2 text-neutral-400 tabular-nums">
+                  {r.rowIndex}
+                </td>
+                <td className="px-3 py-2 text-neutral-700">
+                  {r.values.propertyName ?? (
+                    <span className="text-neutral-400">—</span>
+                  )}
+                </td>
+                <td className="px-3 py-2 text-neutral-700">
+                  {r.values.customerName ?? (
+                    <span className="text-neutral-400">—</span>
+                  )}
+                </td>
+                <td className="px-3 py-2 text-neutral-500">
+                  {r.geocodedAddress ? (
+                    <span className="inline-flex items-center gap-1 text-emerald-700">
+                      <Check className="h-3 w-3" />
+                      {r.geocodedAddress}
+                    </span>
+                  ) : r.geocodeError ? (
+                    <span className="text-red-600">{r.geocodeError}</span>
+                  ) : (
+                    "—"
+                  )}
+                </td>
+                {errored && (
+                  <td className="px-3 py-2 text-red-600">
+                    {r.errors.join("; ")}
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
