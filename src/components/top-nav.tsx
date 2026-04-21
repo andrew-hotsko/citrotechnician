@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserMenu } from "@/components/user-menu";
+import { CommandPaletteTrigger } from "@/components/command-palette-trigger";
 
 type NavItem = {
   href: string;
@@ -41,13 +42,22 @@ export function TopNav({
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 h-14 border-b border-neutral-200 bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-40 h-14 border-b border-neutral-200/80 bg-white/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/60">
       <div className="flex h-full items-center gap-6 px-4">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="h-6 w-6 rounded bg-orange-600 grid place-items-center text-white text-xs font-semibold">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 transition-opacity hover:opacity-80"
+        >
+          <div
+            className="h-6 w-6 rounded-md grid place-items-center text-white text-[11px] font-semibold shadow-elev-1 card-glow"
+            style={{
+              background:
+                "linear-gradient(135deg, oklch(0.66 0.19 42) 0%, oklch(0.6 0.21 38) 100%)",
+            }}
+          >
             C
           </div>
-          <span className="text-sm font-semibold tracking-tight">
+          <span className="text-[13px] font-semibold tracking-tight">
             CitroTech
           </span>
         </Link>
@@ -61,10 +71,10 @@ export function TopNav({
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 h-8 rounded-md text-[13px] font-medium transition-colors",
+                  "relative flex items-center gap-1.5 px-2.5 h-8 rounded-md text-[13px] font-medium transition-all ease-standard duration-150",
                   active
-                    ? "bg-neutral-100 text-neutral-900"
-                    : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50",
+                    ? "bg-neutral-900 text-white shadow-elev-1"
+                    : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70",
                 )}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -75,6 +85,8 @@ export function TopNav({
         </nav>
 
         <div className="flex-1" />
+
+        <CommandPaletteTrigger />
 
         <Link
           href="/settings"

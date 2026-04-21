@@ -2,6 +2,7 @@
 
 import { useOptimistic, useTransition } from "react";
 import { Check } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { setChecklistItemCompleted } from "@/app/actions/tech";
 
@@ -35,7 +36,7 @@ export function ChecklistClient({
       } catch (err) {
         console.error(err);
         apply({ id: item.id, completed: item.completed });
-        alert(err instanceof Error ? err.message : "Failed to update");
+        toast.error(err instanceof Error ? err.message : "Failed to update");
       }
     });
   }

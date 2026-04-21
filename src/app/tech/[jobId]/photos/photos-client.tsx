@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import { Camera, Loader2, X, Plus } from "lucide-react";
 import imageCompression from "browser-image-compression";
+import { toast } from "sonner";
 import { uploadJobPhoto, deleteJobPhoto } from "@/app/actions/tech";
 import { cn } from "@/lib/utils";
 import type { PhotoCategory } from "@/generated/prisma/enums";
@@ -159,7 +160,7 @@ function PhotoCategorySection({
                   await deleteJobPhoto(p.id);
                   onRemove(p.id);
                 } catch (err) {
-                  alert(err instanceof Error ? err.message : "Delete failed");
+                  toast.error(err instanceof Error ? err.message : "Delete failed");
                 }
               })
             }

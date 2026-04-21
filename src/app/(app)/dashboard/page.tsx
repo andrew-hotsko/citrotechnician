@@ -1,96 +1,117 @@
+import { format } from "date-fns";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  listNeedsAttention,
+  listTechWorkload,
+  listUpcomingWeek,
+  listRecentActivity,
+} from "@/lib/dashboard-query";
+import { StatCard } from "./stat-card";
+import { NeedsAttention } from "./needs-attention";
+import { TechWorkload } from "./tech-workload";
+import { UpcomingWeek } from "./upcoming-week";
+import { RecentActivityFeed } from "./recent-activity";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   const firstName = user?.name.split(" ")[0] ?? "there";
 
-  // Placeholder stats — real implementation arrives in Phase 4.
   const now = new Date();
   const in60 = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
   const in7 = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-  const [overdue, dueSoon, scheduled, thisWeek] = await Promise.all([
-    prisma.job.count({
-      where: {
-        deletedAt: null,
-        dueDate: { lt: now },
-        stage: { notIn: ["COMPLETED", "DEFERRED"] },
-      },
-    }),
-    prisma.job.count({
-      where: {
-        deletedAt: null,
-        dueDate: { gte: now, lte: in60 },
-        stage: { notIn: ["COMPLETED", "DEFERRED"] },
-      },
-    }),
-    prisma.job.count({
-      where: { deletedAt: null, stage: "SCHEDULED" },
-    }),
-    prisma.job.count({
-      where: {
-        deletedAt: null,
-        scheduledDate: { gte: now, lte: in7 },
-      },
-    }),
-  ]);
+  const [overdue, dueSoon, scheduled, thisWeek, attention, workload, upcoming, activity] =
+    await Promise.all([
+      prisma.job.count({
+        where: {
+          deletedAt: null,
+          dueDate: { lt: now },
+          stage: { notIn: ["COMPLETED", "DEFERRED"] },
+        },
+      }),
+      prisma.job.count({
+        where: {
+          deletedAt: null,
+          dueDate: { gte: now, lte: in60 },
+          stage: { notIn: ["COMPLETED", "DEFERRED"] },
+        },
+      }),
+      prisma.job.count({
+        where: { deletedAt: null, stage: "SCHEDULED" },
+      }),
+      prisma.job.count({
+        where: {
+          deletedAt: null,
+          scheduledDate: { gte: now, lte: in7 },
+        },
+      }),
+      listNeedsAttention(6),
+      listTechWorkload(),
+      listUpcomingWeek(),
+      listRecentActivity(8),
+    ]);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8">
-      <h1 className="text-xl font-semibold tracking-tight">
-        Good to see you, {firstName}.
-      </h1>
-      <p className="text-sm text-neutral-500 mt-0.5">
-        Here&apos;s what&apos;s happening across your pipeline.
-      </p>
-
-      <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Overdue" value={overdue} tone="red" />
-        <StatCard label="Due in 60 days" value={dueSoon} tone="amber" />
-        <StatCard label="Scheduled" value={scheduled} tone="blue" />
-        <StatCard label="This week" value={thisWeek} tone="neutral" />
+    <div className="max-w-[1400px] mx-auto px-6 py-6 animate-enter">
+      {/* Greeting */}
+      <div className="flex items-baseline justify-between gap-4">
+        <div>
+          <p className="text-[11px] uppercase tracking-wider font-medium text-neutral-500">
+            {format(now, "EEEE · MMMM d")}
+          </p>
+          <h1 className="text-[28px] font-semibold tracking-tight mt-1 leading-none">
+            Good to see you,{" "}
+            <span className="bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
+              {firstName}
+            </span>
+            .
+          </h1>
+        </div>
       </div>
 
-      <div className="mt-10 rounded-lg border border-dashed border-neutral-300 bg-white p-10 text-center">
-        <p className="text-sm text-neutral-600">
-          Full dashboard widgets — needs-attention list, tech workload,
-          California mini-map — ship in Phase 4.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: number;
-  tone: "red" | "amber" | "blue" | "neutral";
-}) {
-  const toneStyles = {
-    red: "bg-red-500",
-    amber: "bg-amber-500",
-    blue: "bg-blue-500",
-    neutral: "bg-neutral-400",
-  } as const;
-
-  return (
-    <div className="rounded-lg border border-neutral-200 bg-white p-4">
-      <div className="flex items-center gap-1.5">
-        <span
-          className={`h-1.5 w-1.5 rounded-full ${toneStyles[tone]}`}
-          aria-hidden
+      {/* Stat row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6 animate-enter-stagger">
+        <StatCard
+          label="Overdue"
+          value={overdue}
+          tone="red"
+          href="/jobs?stage=UPCOMING,OUTREACH,CONFIRMED,SCHEDULED,IN_PROGRESS"
+          hint={overdue === 0 ? "Nothing past due" : "Needs immediate outreach"}
         />
-        <span className="text-[10px] font-medium uppercase tracking-wider text-neutral-500">
-          {label}
-        </span>
+        <StatCard
+          label="Due in 60 days"
+          value={dueSoon}
+          tone="amber"
+          href="/jobs"
+          hint="Get ahead of the curve"
+        />
+        <StatCard
+          label="Scheduled"
+          value={scheduled}
+          tone="blue"
+          href="/calendar"
+          hint="Confirmed on the calendar"
+        />
+        <StatCard
+          label="This week"
+          value={thisWeek}
+          tone="neutral"
+          href="/calendar"
+          hint="Jobs in the next 7 days"
+        />
       </div>
-      <div className="mt-2 text-2xl font-semibold tracking-tight tabular-nums">
-        {value}
+
+      {/* Widget grid */}
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4 animate-enter-stagger">
+        <div className="lg:col-span-2 space-y-4">
+          <NeedsAttention jobs={attention} />
+          <UpcomingWeek buckets={upcoming} />
+        </div>
+        <div className="space-y-4">
+          <TechWorkload techs={workload} />
+          <RecentActivityFeed events={activity} />
+        </div>
       </div>
     </div>
   );

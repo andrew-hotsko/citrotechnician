@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { SearchX } from "lucide-react";
 import { listJobs, listTechs, type JobListItem } from "@/lib/jobs-query";
 import { JobsFilters } from "./filters";
 import { StageBadge, RegionBadge, ProductBadge } from "@/components/badges";
 import { TechAvatar } from "@/components/tech-avatar";
+import { EmptyState } from "@/components/empty-state";
 import {
   formatCurrency,
   formatDate,
@@ -49,7 +51,7 @@ export default async function JobsPage({
   ]);
 
   return (
-    <div className="max-w-[1400px] mx-auto px-6 py-6">
+    <div className="max-w-[1400px] mx-auto px-6 py-6 animate-enter">
       <div className="flex items-baseline justify-between mb-4">
         <div>
           <h1 className="text-lg font-semibold tracking-tight">Jobs</h1>
@@ -78,11 +80,17 @@ export default async function JobsPage({
           <tbody>
             {jobs.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-3 py-16 text-center">
-                  <p className="text-sm text-neutral-500">No jobs match.</p>
-                  <p className="text-xs text-neutral-400 mt-1">
-                    Try clearing filters or search term.
-                  </p>
+                <td colSpan={8} className="p-0">
+                  <EmptyState
+                    icon={SearchX}
+                    title="No jobs match your filters"
+                    description="Try clearing the search term or unselecting some stage / region / tech filters above."
+                    action={{
+                      type: "link",
+                      href: "/jobs",
+                      label: "Clear all filters",
+                    }}
+                  />
                 </td>
               </tr>
             ) : (

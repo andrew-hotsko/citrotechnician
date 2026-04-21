@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { ChevronDown } from "lucide-react";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,9 +38,15 @@ export function JobTechSelect({
     start(async () => {
       try {
         await updateJobAssignment(jobId, techId);
+        const newTech = techs.find((t) => t.id === techId);
+        toast.success(
+          techId
+            ? `Assigned to ${newTech?.name ?? "tech"}`
+            : "Unassigned",
+        );
       } catch (err) {
         console.error(err);
-        alert(err instanceof Error ? err.message : "Failed to assign");
+        toast.error(err instanceof Error ? err.message : "Failed to assign");
       }
     });
   }
