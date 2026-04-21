@@ -55,18 +55,38 @@ Lets CitroTech staff sign in with their `@citrotech.com` Microsoft account.
 
 ---
 
-## 3. Local env file
+## 3. Google Maps API key (Phase 4)
+
+The map view and calendar require a Google Maps JavaScript API key.
+
+1. Go to https://console.cloud.google.com → create a project (or reuse one).
+2. **APIs & Services → Library** → enable **Maps JavaScript API**.
+3. **APIs & Services → Credentials** → **Create credentials → API key**.
+4. Restrict the key:
+   - **Application restrictions:** HTTP referrers → add
+     `http://localhost:3000/*` and your production domain
+   - **API restrictions:** Maps JavaScript API only
+5. Copy the key into `.env.local` as both `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
+   (client-side) and `GOOGLE_MAPS_API_KEY` (reserved for server-side
+   geocoding in Phase 4.5 / CSV import).
+
+Estimated cost: free tier ($200/mo credit) covers ~28,000 map loads —
+CitroTech's 5 internal users at ~10 loads/day = 1,500/mo, well within free.
+
+---
+
+## 4. Local env file
 
 ```bash
 cp .env.example .env.local
 ```
 
-Fill in the values from steps 1–2. Set `ADMIN_EMAILS` to your own email so you
+Fill in the values from steps 1–3. Set `ADMIN_EMAILS` to your own email so you
 get ADMIN role on first login.
 
 ---
 
-## 4. Install, migrate, seed
+## 5. Install, migrate, seed
 
 ```bash
 npm install
@@ -77,7 +97,7 @@ npm run dev            # start the app at http://localhost:3000
 
 ---
 
-## 5. First login
+## 6. First login
 
 1. Visit http://localhost:3000 → redirects to `/login`.
 2. Click **Sign in with Microsoft** → authenticate.
