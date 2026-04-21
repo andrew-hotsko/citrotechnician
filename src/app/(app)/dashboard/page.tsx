@@ -71,28 +71,24 @@ export default async function DashboardPage() {
           value={overdue}
           tone="red"
           href="/jobs?stage=UPCOMING,OUTREACH,CONFIRMED,SCHEDULED,IN_PROGRESS"
-          hint={overdue === 0 ? "Nothing past due" : "Needs immediate outreach"}
         />
         <StatCard
           label="Due in 60 days"
           value={dueSoon}
           tone="amber"
           href="/jobs"
-          hint="Get ahead of the curve"
         />
         <StatCard
           label="Scheduled"
           value={scheduled}
           tone="blue"
           href="/calendar"
-          hint="Confirmed on the calendar"
         />
         <StatCard
           label="This week"
           value={thisWeek}
           tone="neutral"
           href="/calendar"
-          hint="Jobs in the next 7 days"
         />
       </div>
 
