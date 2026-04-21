@@ -1,0 +1,359 @@
+// CitroTech Jobs — Prisma schema
+// Data model per SPEC.md, revised with audit fixes:
+//  - Soft deletes on Job/Property/Customer/User
+//  - DateTime for scheduledStart/End (not String)
+//  - Proper User relations on Photo/Task/MaintenanceReminder
+//  - ChecklistTemplate separated from per-job ChecklistItem instances
+//  - CommunicationLog model for outreach tracking
+//  - lastSyncedAt for Salesforce-synced entities
+//  - customerSignature as URL (stored in Supabase Storage)
+//  - startedAt/endedAt on Job for actual-time tracking
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// -----------------------------------------------------------------------------
+// Users & Auth
+// -----------------------------------------------------------------------------
+
+model User {
+  id             String    @id @default(cuid())
+  supabaseUserId String?   @unique
+  email          String    @unique
+  name           String
+  role           Role      @default(VIEWER)
+  initials       String?
+  color          String?
+  phone          String?
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  assignedJobs            Job[]              @relation("AssignedTech")
+  completedJobs           Job[]              @relation("CompletedBy")
+  activityLogs            ActivityLog[]
+  uploadedPhotos          Photo[]
+  uploadedDocs            Document[]
+  assignedTasks           Task[]
+  communications          CommunicationLog[]
+  checklistItemsCompleted ChecklistItem[]
+}
+
+enum Role {
+  ADMIN
+  OPS_MANAGER
+  TECH
+  VIEWER
+}
+
+// -----------------------------------------------------------------------------
+// Customers & Properties
+// -----------------------------------------------------------------------------
+
+model Customer {
+  id           String    @id @default(cuid())
+  salesforceId String?   @unique
+  name         String
+  email        String?
+  phone        String?
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  lastSyncedAt DateTime?
+
+  properties Property[]
+}
+
+model Property {
+  id           String   @id @default(cuid())
+  salesforceId String?  @unique
+  customerId   String
+  customer     Customer @relation(fields: [customerId], references: [id])
+
+  name        String
+  address     String
+  city        String
+  state       String   @default("CA")
+  zip         String?
+  latitude    Float
+  longitude   Float
+  region      Region
+  sqft        Int?
+  accessNotes String?
+  siteNotes   String?
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  lastSyncedAt DateTime?
+
+  jobs      Job[]
+  documents Document[]
+}
+
+enum Region {
+  NORCAL
+  SOCAL
+  OTHER
+}
+
+// -----------------------------------------------------------------------------
+// Jobs
+// -----------------------------------------------------------------------------
+
+model Job {
+  id           String  @id @default(cuid())
+  jobNumber    String  @unique
+  salesforceId String? @unique
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  stage         JobStage @default(UPCOMING)
+  type          JobType  @default(MAINTENANCE)
+  product       Product
+  sqftTreated   Int
+  contractValue Decimal?
+
+  assignedTechId String?
+  assignedTech   User?     @relation("AssignedTech", fields: [assignedTechId], references: [id])
+  scheduledDate  DateTime?
+  scheduledStart DateTime?
+  scheduledEnd   DateTime?
+
+  lastServiceDate           DateTime?
+  dueDate                   DateTime
+  maintenanceIntervalMonths Int       @default(12)
+
+  completedAt       DateTime?
+  completedById     String?
+  completedBy       User?     @relation("CompletedBy", fields: [completedById], references: [id])
+  customerSignature String?
+  startedAt         DateTime?
+  endedAt           DateTime?
+
+  lastContactAt   DateTime?
+  contactAttempts Int       @default(0)
+
+  officeNotes    String?
+  techNotes      String?
+  deferralReason String?
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  lastSyncedAt DateTime?
+
+  checklistItems       ChecklistItem[]
+  photos               Photo[]
+  documents            Document[]
+  activityLogs         ActivityLog[]
+  serviceReports       ServiceReport[]
+  maintenanceReminders MaintenanceReminder[]
+  tasks                Task[]
+  communications       CommunicationLog[]
+
+  parentJobId String?
+  parentJob   Job?    @relation("MaintenanceChain", fields: [parentJobId], references: [id])
+  childJobs   Job[]   @relation("MaintenanceChain")
+
+  @@index([stage])
+  @@index([dueDate])
+  @@index([assignedTechId])
+  @@index([propertyId])
+}
+
+enum JobStage {
+  UPCOMING
+  OUTREACH
+  CONFIRMED
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  DEFERRED
+}
+
+enum JobType {
+  INITIAL_APPLICATION
+  MAINTENANCE
+  ONE_OFF
+}
+
+enum Product {
+  MFB_31
+  MFB_34
+  MFB_35_FM
+}
+
+// -----------------------------------------------------------------------------
+// Checklists
+// -----------------------------------------------------------------------------
+
+model ChecklistTemplate {
+  id        String   @id @default(cuid())
+  product   Product  @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items ChecklistTemplateItem[]
+}
+
+model ChecklistTemplateItem {
+  id         String            @id @default(cuid())
+  templateId String
+  template   ChecklistTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  label      String
+  order      Int
+}
+
+model ChecklistItem {
+  id            String    @id @default(cuid())
+  jobId         String
+  job           Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  label         String
+  order         Int
+  completed     Boolean   @default(false)
+  completedAt   DateTime?
+  completedById String?
+  completedBy   User?     @relation(fields: [completedById], references: [id])
+}
+
+// -----------------------------------------------------------------------------
+// Media & Documents
+// -----------------------------------------------------------------------------
+
+model Photo {
+  id           String        @id @default(cuid())
+  jobId        String
+  job          Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  url          String
+  thumbnailUrl String?
+  category     PhotoCategory
+  caption      String?
+  uploadedAt   DateTime      @default(now())
+  uploadedById String
+  uploadedBy   User          @relation(fields: [uploadedById], references: [id])
+}
+
+enum PhotoCategory {
+  BEFORE
+  DURING
+  AFTER
+  ISSUE
+}
+
+model Document {
+  id           String    @id @default(cuid())
+  jobId        String?
+  job          Job?      @relation(fields: [jobId], references: [id])
+  propertyId   String?
+  property     Property? @relation(fields: [propertyId], references: [id])
+  name         String
+  url          String
+  sizeBytes    Int
+  mimeType     String
+  uploadedAt   DateTime  @default(now())
+  uploadedById String
+  uploadedBy   User      @relation(fields: [uploadedById], references: [id])
+}
+
+model ServiceReport {
+  id          String   @id @default(cuid())
+  jobId       String
+  job         Job      @relation(fields: [jobId], references: [id])
+  pdfUrl      String
+  version     Int      @default(1)
+  generatedAt DateTime @default(now())
+
+  @@unique([jobId, version])
+}
+
+// -----------------------------------------------------------------------------
+// Activity, Reminders, Tasks, Communications
+// -----------------------------------------------------------------------------
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  jobId       String?
+  job         Job?     @relation(fields: [jobId], references: [id])
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  action      String
+  description String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([jobId])
+  @@index([createdAt])
+}
+
+model MaintenanceReminder {
+  id           String       @id @default(cuid())
+  jobId        String
+  job          Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  type         ReminderType
+  scheduledFor DateTime
+  triggered    Boolean      @default(false)
+  triggeredAt  DateTime?
+
+  @@index([scheduledFor, triggered])
+}
+
+enum ReminderType {
+  NINETY_DAY
+  SIXTY_DAY
+  THIRTY_DAY
+  OVERDUE
+}
+
+model Task {
+  id           String    @id @default(cuid())
+  assignedToId String
+  assignedTo   User      @relation(fields: [assignedToId], references: [id])
+  jobId        String?
+  job          Job?      @relation(fields: [jobId], references: [id])
+  title        String
+  description  String?
+  dueDate      DateTime?
+  completed    Boolean   @default(false)
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([assignedToId, completed])
+}
+
+model CommunicationLog {
+  id        String                 @id @default(cuid())
+  jobId     String
+  job       Job                    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User                   @relation(fields: [userId], references: [id])
+  channel   CommunicationChannel
+  direction CommunicationDirection
+  summary   String
+  createdAt DateTime               @default(now())
+
+  @@index([jobId])
+}
+
+enum CommunicationChannel {
+  PHONE
+  EMAIL
+  TEXT
+  IN_PERSON
+  OTHER
+}
+
+enum CommunicationDirection {
+  OUTBOUND
+  INBOUND
+}
