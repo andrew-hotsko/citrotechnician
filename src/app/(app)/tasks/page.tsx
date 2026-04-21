@@ -1,11 +1,137 @@
-import { ComingSoon } from "@/components/coming-soon";
+import { redirect } from "next/navigation";
+import { Inbox } from "lucide-react";
+import { getCurrentUser } from "@/lib/auth";
+import { listTasksForUser, countTasksForUser } from "@/lib/tasks-query";
+import { EmptyState } from "@/components/empty-state";
+import { TasksList } from "./tasks-list";
 
-export default function TasksPage() {
+type Search = Promise<{ filter?: "open" | "completed" | "all" }>;
+
+export default async function TasksPage({
+  searchParams,
+}: {
+  searchParams: Search;
+}) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  const params = await searchParams;
+  const filter = params.filter ?? "open";
+
+  const [tasks, counts] = await Promise.all([
+    listTasksForUser(user.id, filter),
+    countTasksForUser(user.id),
+  ]);
+
   return (
-    <ComingSoon
-      phase="Phase 6"
-      title="Tasks"
-      description="Ops manager inbox. Auto-generated reminders land here at T-90, T-60, T-30. Each task links to its job."
-    />
+    <div className="max-w-[900px] mx-auto px-6 py-6 animate-enter">
+      <div className="flex items-baseline justify-between gap-4 mb-4">
+        <div>
+          <h1 className="text-[18px] font-semibold tracking-tight">Tasks</h1>
+          <p className="text-[12px] text-neutral-500 mt-1">
+            Your inbox from the maintenance engine. Reminders fire at T-90,
+            T-60, T-30, and again if a job goes overdue.
+          </p>
+        </div>
+        <div className="flex items-center gap-3 text-right">
+          <Counter label="Open" value={counts.open} />
+          <Counter label="Overdue" value={counts.overdue} tone="red" />
+        </div>
+      </div>
+
+      <Tabs currentFilter={filter} counts={counts} />
+
+      {tasks.length === 0 ? (
+        <div className="mt-6 rounded-xl border border-neutral-200 bg-white">
+          <EmptyState
+            icon={Inbox}
+            title={
+              filter === "open"
+                ? "Inbox zero"
+                : filter === "completed"
+                  ? "Nothing completed yet"
+                  : "No tasks yet"
+            }
+            description={
+              filter === "open"
+                ? "No open tasks. The engine will surface new ones each morning as jobs approach their next service window."
+                : "Tasks will show up here once you mark them complete."
+            }
+          />
+        </div>
+      ) : (
+        <TasksList tasks={tasks} />
+      )}
+    </div>
+  );
+}
+
+function Counter({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone?: "red";
+}) {
+  return (
+    <div className="text-right">
+      <div
+        className={
+          tone === "red" && value > 0
+            ? "text-[16px] font-semibold tabular-nums text-red-600"
+            : "text-[16px] font-semibold tabular-nums"
+        }
+      >
+        {value}
+      </div>
+      <div className="text-[10px] uppercase tracking-wider text-neutral-500">
+        {label}
+      </div>
+    </div>
+  );
+}
+
+function Tabs({
+  currentFilter,
+  counts,
+}: {
+  currentFilter: "open" | "completed" | "all";
+  counts: { open: number; overdue: number };
+}) {
+  const tabs: { key: typeof currentFilter; label: string; count?: number }[] = [
+    { key: "open", label: "Open", count: counts.open },
+    { key: "completed", label: "Completed" },
+    { key: "all", label: "All" },
+  ];
+  return (
+    <div className="flex items-center gap-1 border-b border-neutral-200">
+      {tabs.map((t) => {
+        const active = currentFilter === t.key;
+        return (
+          <a
+            key={t.key}
+            href={`/tasks?filter=${t.key}`}
+            className={
+              "relative inline-flex items-center gap-1.5 h-9 px-3 text-[12px] font-medium transition-colors " +
+              (active
+                ? "text-neutral-900"
+                : "text-neutral-500 hover:text-neutral-900")
+            }
+          >
+            {t.label}
+            {typeof t.count === "number" && t.count > 0 && (
+              <span className="text-[10px] tabular-nums text-neutral-500">
+                {t.count}
+              </span>
+            )}
+            {active && (
+              <span className="absolute left-0 right-0 -bottom-px h-px bg-neutral-900" />
+            )}
+          </a>
+        );
+      })}
+    </div>
   );
 }

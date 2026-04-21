@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Upload, Users, ListChecks, RefreshCw, ChevronRight } from "lucide-react";
+import { Upload, Users, ListChecks, RefreshCw, ChevronRight, Zap } from "lucide-react";
+import { RunRemindersButton } from "./run-reminders-button";
 
 type SettingLink = {
   href: string;
@@ -94,6 +95,30 @@ export default function SettingsPage() {
           );
         })}
       </ul>
+
+      {/* Admin utilities */}
+      <div className="mt-8">
+        <h2 className="text-[11px] uppercase tracking-wider text-neutral-500 font-medium">
+          Admin utilities
+        </h2>
+        <div className="mt-2 flex items-start gap-4 rounded-xl border border-neutral-200 bg-white px-5 py-4">
+          <div className="h-8 w-8 rounded-md bg-neutral-100 grid place-items-center shrink-0">
+            <Zap className="h-4 w-4 text-neutral-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-[14px] font-semibold tracking-tight">
+              Run the maintenance engine now
+            </h3>
+            <p className="text-[12px] text-neutral-500 mt-1 leading-relaxed">
+              Normally runs daily at 9am via Vercel Cron. Kicking it manually
+              will fire any due reminders right now, create tasks, and
+              auto-advance jobs at T-60. Safe to re-run: already-triggered
+              reminders are skipped.
+            </p>
+          </div>
+          <RunRemindersButton />
+        </div>
+      </div>
     </div>
   );
 }
