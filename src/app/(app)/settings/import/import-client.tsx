@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useRef, useState, useTransition } from "react";
 import Papa from "papaparse";
 import {
@@ -21,7 +22,13 @@ import {
   FIELD_ORDER,
   type ImportField,
 } from "@/lib/csv-import";
-import { dryRunImport, type DryRunResult } from "@/app/actions/import";
+import {
+  dryRunImport,
+  commitImport,
+  type DryRunResult,
+  type ImportCommitResult,
+  type ImportCommitRow,
+} from "@/app/actions/import";
 
 type FileState = {
   name: string;
@@ -29,7 +36,7 @@ type FileState = {
   rows: Record<string, string>[];
 };
 
-type View = "drop" | "mapping" | "validating" | "results";
+type View = "drop" | "mapping" | "validating" | "results" | "importing" | "done";
 
 export function ImportClient() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -38,6 +45,9 @@ export function ImportClient() {
   const [dragging, setDragging] = useState(false);
   const [view, setView] = useState<View>("drop");
   const [dryRun, setDryRun] = useState<DryRunResult | null>(null);
+  const [commitResult, setCommitResult] = useState<ImportCommitResult | null>(
+    null,
+  );
   const [pending, start] = useTransition();
 
   function pickFile() {
@@ -71,8 +81,37 @@ export function ImportClient() {
     setFile(null);
     setMapping({});
     setDryRun(null);
+    setCommitResult(null);
     setView("drop");
     if (inputRef.current) inputRef.current.value = "";
+  }
+
+  function runCommit() {
+    if (!dryRun) return;
+    const valid: ImportCommitRow[] = dryRun.rows
+      .filter((r) => r.errors.length === 0)
+      .map((r) => ({
+        rowIndex: r.rowIndex,
+        values: r.values as ImportCommitRow["values"],
+      }));
+    if (valid.length === 0) {
+      toast.error("No valid rows to import");
+      return;
+    }
+    setView("importing");
+    start(async () => {
+      try {
+        const result = await commitImport(valid);
+        setCommitResult(result);
+        setView("done");
+        toast.success(
+          `Imported ${result.summary.created} ${result.summary.created === 1 ? "job" : "jobs"}`,
+        );
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Import failed");
+        setView("results");
+      }
+    });
   }
 
   const mappedRequired = useMemo(() => {
@@ -141,6 +180,91 @@ export function ImportClient() {
     );
   }
 
+  // ---------------- importing view ----------------
+  if (view === "importing") {
+    return (
+      <div className="mt-8 rounded-xl border border-neutral-200 bg-white px-6 py-12 text-center">
+        <Loader2 className="h-5 w-5 animate-spin mx-auto text-neutral-500" />
+        <p className="text-[13px] font-medium mt-3">Importing…</p>
+        <p className="text-[11px] text-neutral-500 mt-1">
+          Creating customers, properties, and jobs. Don&apos;t close this tab.
+        </p>
+      </div>
+    );
+  }
+
+  // ---------------- done view ----------------
+  if (view === "done" && commitResult) {
+    return (
+      <div className="mt-6 space-y-4">
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 px-5 py-5">
+          <div className="flex items-start gap-3">
+            <div className="h-8 w-8 rounded-full bg-emerald-500 grid place-items-center shrink-0">
+              <Check className="h-4 w-4 text-white" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-[15px] font-semibold tracking-tight text-emerald-900">
+                Imported {commitResult.summary.created}{" "}
+                {commitResult.summary.created === 1 ? "job" : "jobs"}
+              </h2>
+              <p className="text-[12px] text-emerald-800 mt-1">
+                {commitResult.summary.created} created
+                {commitResult.summary.skipped > 0 && (
+                  <> &middot; {commitResult.summary.skipped} skipped due to errors</>
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {commitResult.rowErrors.length > 0 && (
+          <section className="rounded-xl border border-amber-200 bg-white overflow-hidden">
+            <header className="px-4 py-3 border-b border-amber-100 bg-amber-50/40">
+              <h3 className="text-[13px] font-semibold tracking-tight text-amber-900">
+                {commitResult.rowErrors.length} rows were skipped
+              </h3>
+              <p className="text-[11px] text-amber-800 mt-0.5">
+                Fix these in the source CSV and re-upload. The successful rows
+                above are already saved.
+              </p>
+            </header>
+            <ul className="divide-y divide-neutral-100 text-[12px]">
+              {commitResult.rowErrors.map((e) => (
+                <li key={e.rowIndex} className="px-4 py-2 flex gap-3">
+                  <span className="text-neutral-400 tabular-nums w-10 shrink-0">
+                    #{e.rowIndex}
+                  </span>
+                  <span className="text-red-600">{e.error}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-4">
+          <p className="text-[12px] text-neutral-600">
+            The new jobs are now live on your dashboard, pipeline, and map.
+          </p>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/jobs"
+              className="inline-flex items-center h-9 px-3 rounded-md border border-neutral-200 bg-white text-[13px] font-medium text-neutral-700 hover:border-neutral-300"
+            >
+              View jobs
+            </Link>
+            <button
+              type="button"
+              onClick={clearFile}
+              className="inline-flex items-center h-9 px-3 rounded-md bg-neutral-900 text-white text-[13px] font-medium hover:bg-neutral-800"
+            >
+              Import more
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ---------------- results view ----------------
   if (view === "results" && dryRun) {
     const errored = dryRun.rows.filter((r) => r.errors.length > 0);
@@ -158,10 +282,23 @@ export function ImportClient() {
           </button>
           <button
             type="button"
-            disabled
-            className="inline-flex items-center h-9 px-4 rounded-md bg-neutral-200 text-neutral-500 text-[13px] font-medium cursor-not-allowed"
+            onClick={runCommit}
+            disabled={pending || valid.length === 0}
+            className={cn(
+              "inline-flex items-center gap-1.5 h-9 px-4 rounded-md text-[13px] font-medium transition-colors",
+              pending || valid.length === 0
+                ? "bg-neutral-200 text-neutral-500 cursor-not-allowed"
+                : "bg-neutral-900 text-white hover:bg-neutral-800",
+            )}
           >
-            Import {valid.length} valid {valid.length === 1 ? "row" : "rows"}
+            {pending ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Importing…
+              </>
+            ) : (
+              <>Import {valid.length} valid {valid.length === 1 ? "row" : "rows"}</>
+            )}
           </button>
         </div>
 
