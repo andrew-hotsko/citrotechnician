@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -53,6 +55,8 @@ export default function RootLayout({
       <body className="min-h-full bg-[var(--color-surface)] text-neutral-900 font-sans">
         {children}
         <Toaster position="bottom-right" richColors closeButton />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
