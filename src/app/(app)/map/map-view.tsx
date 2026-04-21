@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { Route, X, CheckSquare, Square } from "lucide-react";
@@ -61,7 +62,10 @@ export function MapView({
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
     apiKey ? "loading" : "error",
   );
-  const [tripMode, setTripMode] = useState(false);
+  // Deep link: `/map?trip=1` auto-enables trip mode so shortcuts
+  // from the Dashboard land the ops manager ready to batch-select.
+  const searchParams = useSearchParams();
+  const [tripMode, setTripMode] = useState(searchParams?.get("trip") === "1" && canEdit);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [schedulerOpen, setSchedulerOpen] = useState(false);
 

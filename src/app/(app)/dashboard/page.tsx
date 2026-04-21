@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { format } from "date-fns";
+import { Route, Plus } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
@@ -52,16 +54,40 @@ export default async function DashboardPage() {
       listRecentActivity(8),
     ]);
 
+  const canEdit =
+    user?.role === "ADMIN" || user?.role === "OPS_MANAGER";
+
   return (
     <div className="max-w-[1400px] mx-auto px-6 py-6 animate-enter">
-      {/* Greeting */}
-      <div>
-        <p className="text-[10px] uppercase tracking-wider font-medium text-neutral-500">
-          {format(now, "EEEE, MMMM d")}
-        </p>
-        <h1 className="text-[22px] font-semibold tracking-tight mt-1.5">
-          Good to see you, {firstName}.
-        </h1>
+      {/* Greeting + quick actions */}
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <p className="text-[10px] uppercase tracking-wider font-medium text-neutral-500">
+            {format(now, "EEEE, MMMM d")}
+          </p>
+          <h1 className="text-[22px] font-semibold tracking-tight mt-1.5">
+            Good to see you, {firstName}.
+          </h1>
+        </div>
+        {canEdit && (
+          <div className="flex items-center gap-2">
+            <Link
+              href="/map?trip=1"
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-neutral-200 bg-white text-[12px] font-medium text-neutral-700 transition-all hover:border-neutral-300 hover:bg-neutral-50 shadow-elev-1"
+              title="Open the map with trip-select mode on"
+            >
+              <Route className="h-3.5 w-3.5" />
+              Plan a trip
+            </Link>
+            <Link
+              href="/jobs"
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-neutral-900 text-white text-[12px] font-medium transition-all hover:bg-neutral-800 shadow-elev-1"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              New job
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Stat row */}
