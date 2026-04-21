@@ -50,10 +50,6 @@ export function ImportClient() {
   );
   const [pending, start] = useTransition();
 
-  function pickFile() {
-    inputRef.current?.click();
-  }
-
   function handleFile(f: File) {
     if (!f.name.toLowerCase().endsWith(".csv")) {
       toast.error("Please upload a .csv file");
@@ -160,7 +156,6 @@ export function ImportClient() {
         dragging={dragging}
         setDragging={setDragging}
         onFile={handleFile}
-        onPick={pickFile}
         inputRef={inputRef}
       />
     );
@@ -322,7 +317,12 @@ export function ImportClient() {
         </div>
 
         {errored.length > 0 && (
-          <ResultTable title={`${errored.length} rows need fixing`} rows={errored} errored />
+          <ResultTable
+            title={`${errored.length} rows need fixing`}
+            rows={errored}
+            errored
+            allHeaders={file.headers}
+          />
         )}
         <ResultTable
           title={`${valid.length} rows ready`}
@@ -528,13 +528,11 @@ function DropZone({
   dragging,
   setDragging,
   onFile,
-  onPick,
   inputRef,
 }: {
   dragging: boolean;
   setDragging: (v: boolean) => void;
   onFile: (f: File) => void;
-  onPick: () => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
 }) {
   return (
@@ -590,15 +588,11 @@ function DropZone({
         </span>
         <a
           href="/api/import/template"
-          download
+          download="citrotech-import-template.csv"
           className="inline-flex items-center gap-1 font-medium text-neutral-700 hover:text-neutral-900"
-          onClick={(e) => {
-            e.preventDefault();
-            onPick();
-          }}
         >
           <Download className="h-3 w-3" />
-          Template
+          Download template
         </a>
       </div>
     </div>
@@ -753,16 +747,59 @@ function ResultTable({
   title,
   rows,
   errored,
+  allHeaders,
 }: {
   title: string;
   rows: DryRunResult["rows"];
   errored: boolean;
+  allHeaders?: string[];
 }) {
   if (rows.length === 0) return null;
+
+  function exportErrored() {
+    if (!allHeaders) return;
+    const csvEscape = (v: string) => {
+      if (v == null) return "";
+      const s = String(v);
+      if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+      return s;
+    };
+    const headers = [...allHeaders, "_row", "_error"];
+    const lines = [
+      headers.map(csvEscape).join(","),
+      ...rows.map((r) =>
+        [
+          ...allHeaders.map((h) => csvEscape(r.raw[h] ?? "")),
+          String(r.rowIndex),
+          csvEscape(r.errors.join("; ")),
+        ].join(","),
+      ),
+    ];
+    const blob = new Blob(["\uFEFF" + lines.join("\n") + "\n"], {
+      type: "text/csv;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "citrotech-import-errors.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <section className="rounded-xl border border-neutral-200 bg-white overflow-hidden">
-      <header className="px-4 py-3 border-b border-neutral-100">
+      <header className="flex items-center justify-between gap-3 px-4 py-3 border-b border-neutral-100">
         <h2 className="text-[13px] font-semibold tracking-tight">{title}</h2>
+        {errored && allHeaders && (
+          <button
+            type="button"
+            onClick={exportErrored}
+            className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md border border-neutral-200 bg-white text-[11px] font-medium text-neutral-700 hover:border-neutral-300"
+          >
+            <Download className="h-3 w-3" />
+            Download errored rows
+          </button>
+        )}
       </header>
       <div className="overflow-x-auto">
         <table className="w-full text-[12px]">
