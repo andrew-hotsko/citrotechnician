@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ListChecks, Camera, PenTool, MapPin, Phone } from "lucide-react";
+import { AlertTriangle, ListChecks, Camera, PenTool, MapPin, Phone, FileText } from "lucide-react";
 import { loadTechJob } from "@/lib/tech-job";
 import { StepButton } from "@/components/tech/step-button";
 import { StageBadge, ProductBadge, RegionBadge } from "@/components/badges";
@@ -148,12 +148,29 @@ export default async function TechJobBrief({
             <p className="text-[13px] font-semibold text-emerald-900">
               Job completed
             </p>
-            <Link
-              href="/tech"
-              className="inline-block mt-2 text-[12px] text-emerald-800 underline"
-            >
-              Back to today
-            </Link>
+            {job.serviceReports[0] ? (
+              <a
+                href={job.serviceReports[0].pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-1.5 mt-3 h-9 px-3 rounded-md bg-emerald-600 text-white text-[13px] font-medium hover:bg-emerald-700"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Download service report
+              </a>
+            ) : (
+              <p className="text-[11px] text-emerald-800 mt-2">
+                PDF service report is generating\u2026
+              </p>
+            )}
+            <div className="mt-3">
+              <Link
+                href="/tech"
+                className="text-[12px] text-emerald-800 underline"
+              >
+                Back to today
+              </Link>
+            </div>
           </div>
         ) : (
           <CompleteJobButton jobId={job.id} disabled={!canComplete} />

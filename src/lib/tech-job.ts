@@ -23,6 +23,11 @@ export async function loadTechJob(jobId: string) {
       },
       checklistItems: { orderBy: { order: "asc" } },
       photos: { orderBy: { uploadedAt: "asc" } },
+      serviceReports: {
+        orderBy: { version: "desc" },
+        take: 1,
+        select: { pdfUrl: true, version: true, generatedAt: true },
+      },
     },
   });
   if (!job) notFound();
