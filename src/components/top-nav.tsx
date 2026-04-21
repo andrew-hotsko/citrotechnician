@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserMenu } from "@/components/user-menu";
+import { CommandPaletteTrigger } from "@/components/command-palette-trigger";
 
 type NavItem = {
   href: string;
@@ -84,6 +85,8 @@ export function TopNav({
         </nav>
 
         <div className="flex-1" />
+
+        <CommandPaletteTrigger />
 
         <Link
           href="/settings"

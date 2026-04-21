@@ -184,10 +184,10 @@ function JobCard({
       ref={setNodeRef}
       {...(canEdit && !dragging ? { ...listeners, ...attributes } : {})}
       className={cn(
-        "group block rounded-md border border-neutral-200 bg-white p-2.5 shadow-sm transition-all",
-        canEdit && !dragging && "hover:border-neutral-300 cursor-grab active:cursor-grabbing",
+        "group block rounded-lg border border-neutral-200/80 bg-white p-2.5 card-glow card-glow-hover",
+        canEdit && !dragging && "cursor-grab active:cursor-grabbing",
         isDragging && "opacity-40",
-        dragging && "shadow-lg rotate-1 cursor-grabbing",
+        dragging && "shadow-elev-3 rotate-1 cursor-grabbing",
       )}
     >
       <Link
