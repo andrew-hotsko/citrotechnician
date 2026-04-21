@@ -4,6 +4,7 @@ loadEnv({ path: ".env.local", override: true });
 
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { maintenanceReminderScheduleFor } from "../src/lib/reminder-schedule";
 
 const connectionString =
   process.env.DIRECT_URL || process.env.DATABASE_URL || "";
@@ -339,7 +340,7 @@ async function main() {
 
     const completedAt = j.stage === "COMPLETED" ? lastServiceDate : null;
 
-    await prisma.job.create({
+    const createdJob = await prisma.job.create({
       data: {
         jobNumber: `CT-${j.seedKey.padStart(4, "0")}`,
         salesforceId: `seed-job-${j.seedKey}`,
@@ -373,6 +374,15 @@ async function main() {
           : undefined,
       },
     });
+
+    // Schedule T-90/60/30/overdue reminders for every active job so the
+    // ops inbox gets populated on the next cron run. Skip terminal stages
+    // (completed/deferred) since those jobs don't need follow-up.
+    if (j.stage !== "COMPLETED" && j.stage !== "DEFERRED") {
+      await prisma.maintenanceReminder.createMany({
+        data: maintenanceReminderScheduleFor(createdJob.id, dueDate),
+      });
+    }
   }
 
   console.log(`  ✓ ${JOBS.length} jobs (with properties + customers + checklist items)`);

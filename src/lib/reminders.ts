@@ -2,6 +2,11 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { type ReminderType } from "@/generated/prisma/enums";
 
+// Re-export the pure scheduling helper so server code can keep importing
+// it from `@/lib/reminders`. The implementation lives in a dependency-free
+// module so the standalone seed script can reuse the same business rule.
+export { maintenanceReminderScheduleFor } from "@/lib/reminder-schedule";
+
 /**
  * Converts a MaintenanceReminder into the Task title + description the ops
  * manager sees in their inbox. Kept distinct per type so the inbox reads

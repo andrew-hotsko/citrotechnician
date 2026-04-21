@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { parseRow, type ImportField, type ParsedRow } from "@/lib/csv-import";
 import { geocodeBatch } from "@/lib/geocode";
+import { maintenanceReminderScheduleFor } from "@/lib/reminders";
 
 export type DryRunRow = ParsedRow & {
   geocodeError?: string;
@@ -217,6 +218,10 @@ export async function commitImport(
                 }
               : undefined,
           },
+        });
+
+        await tx.maintenanceReminder.createMany({
+          data: maintenanceReminderScheduleFor(job.id, dueDate),
         });
 
         await tx.activityLog.create({

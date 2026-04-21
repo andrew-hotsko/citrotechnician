@@ -9,6 +9,7 @@ import {
   pathFromPublicUrl,
 } from "@/lib/storage";
 import { generateServiceReportForJob } from "@/lib/pdf/generate";
+import { maintenanceReminderScheduleFor } from "@/lib/reminders";
 import type { PhotoCategory } from "@/generated/prisma/enums";
 
 const PHOTO_CATEGORIES: PhotoCategory[] = [
@@ -278,12 +279,7 @@ export async function completeJob(jobId: string) {
     });
 
     await tx.maintenanceReminder.createMany({
-      data: [
-        { jobId: child.id, type: "NINETY_DAY", scheduledFor: offsetDays(nextDue, -90) },
-        { jobId: child.id, type: "SIXTY_DAY",  scheduledFor: offsetDays(nextDue, -60) },
-        { jobId: child.id, type: "THIRTY_DAY", scheduledFor: offsetDays(nextDue, -30) },
-        { jobId: child.id, type: "OVERDUE",    scheduledFor: offsetDays(nextDue, 1) },
-      ],
+      data: maintenanceReminderScheduleFor(child.id, nextDue),
     });
 
     await tx.activityLog.create({
@@ -363,10 +359,6 @@ export async function regenerateServiceReport(jobId: string) {
 }
 
 // ---- helpers ---------------------------------------------------------------
-
-function offsetDays(base: Date, days: number) {
-  return new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
-}
 
 async function buildChecklistFromTemplate(
   tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
