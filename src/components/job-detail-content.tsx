@@ -6,6 +6,7 @@ import { TechAvatar } from "@/components/tech-avatar";
 import { JobStageSelect } from "@/components/job-stage-select";
 import { JobTechSelect } from "@/components/job-tech-select";
 import { OfficeNotesEditor } from "@/components/office-notes-editor";
+import { ServiceReportSection } from "@/components/service-report-section";
 import {
   formatCurrency,
   formatDate,
@@ -154,6 +155,19 @@ export function JobDetailContent({
           <p className="text-[13px] text-neutral-700">{job.deferralReason}</p>
         </Section>
       )}
+
+      {/* Service report (if completed) */}
+      <ServiceReportSection
+        jobId={job.id}
+        reports={job.serviceReports.map((r) => ({
+          id: r.id,
+          pdfUrl: r.pdfUrl,
+          version: r.version,
+          generatedAt: r.generatedAt,
+        }))}
+        canRegenerate={canEdit}
+        jobCompleted={job.stage === "COMPLETED"}
+      />
 
       {/* Checklist */}
       <Section

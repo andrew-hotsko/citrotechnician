@@ -8,6 +8,7 @@ import {
   deleteFromMediaBucket,
   pathFromPublicUrl,
 } from "@/lib/storage";
+import { generateServiceReportForJob } from "@/lib/pdf/generate";
 import type { PhotoCategory } from "@/generated/prisma/enums";
 
 const PHOTO_CATEGORIES: PhotoCategory[] = [
@@ -227,7 +228,9 @@ export async function captureSignature(formData: FormData) {
  *  - Create child maintenance Job at dueDate = completedAt + interval months
  *  - Create MaintenanceReminders at T-90, T-60, T-30
  *  - Log to ActivityLog
- * NOTE: PDF service report generation is Phase 5 (intentionally deferred).
+ *  - Render + upload the branded PDF service report; attach ServiceReport
+ *    row. If PDF fails, the job is still marked complete (we don't block
+ *    the tech's flow on an external dependency).
  */
 export async function completeJob(jobId: string) {
   const { user, job } = await assertJobAccess(jobId);
@@ -294,13 +297,69 @@ export async function completeJob(jobId: string) {
     });
   });
 
+  // Generate the branded PDF service report. We do this AFTER the main
+  // transaction so a PDF failure never blocks job completion \u2014 the tech
+  // gets to finish their work; an admin can regenerate later.
+  let pdfUrl: string | null = null;
+  let pdfError: string | null = null;
+  try {
+    const result = await generateServiceReportForJob(job.id);
+    pdfUrl = result.url;
+  } catch (err) {
+    pdfError = err instanceof Error ? err.message : "Unknown PDF error";
+    // Record the failure so an admin can spot it from the activity feed.
+    await prisma.activityLog.create({
+      data: {
+        jobId: job.id,
+        userId: user.id,
+        action: "pdf_failed",
+        description: `Service report PDF generation failed: ${pdfError}`,
+      },
+    });
+  }
+
   revalidatePath("/tech");
   revalidatePath(`/tech/${job.id}`);
   revalidatePath(`/jobs/${job.id}`);
   revalidatePath("/pipeline");
   revalidatePath("/jobs");
   revalidatePath("/dashboard");
-  return { ok: true as const };
+  return { ok: true as const, pdfUrl, pdfError };
+}
+
+/**
+ * Admin / ops-manager regeneration of the service report PDF. Useful if
+ * the template evolves or generation previously failed. Appends a new
+ * ServiceReport row (version N+1).
+ */
+export async function regenerateServiceReport(jobId: string) {
+  const user = await requireUser();
+  if (user.role !== "ADMIN" && user.role !== "OPS_MANAGER") {
+    throw new Error("Only admins and ops managers can regenerate reports");
+  }
+
+  const job = await prisma.job.findFirst({
+    where: { id: jobId, deletedAt: null },
+    select: { id: true, completedAt: true, jobNumber: true },
+  });
+  if (!job) throw new Error("Job not found");
+  if (!job.completedAt) throw new Error("Job hasn't been completed yet");
+
+  const result = await generateServiceReportForJob(jobId);
+
+  await prisma.activityLog.create({
+    data: {
+      jobId,
+      userId: user.id,
+      action: "pdf_regenerated",
+      description: `Regenerated service report (v${result.version})`,
+      metadata: { pdfUrl: result.url, version: result.version },
+    },
+  });
+
+  revalidatePath(`/jobs/${jobId}`);
+  revalidatePath(`/tech/${jobId}`);
+  return { ok: true as const, url: result.url, version: result.version };
 }
 
 // ---- helpers ---------------------------------------------------------------

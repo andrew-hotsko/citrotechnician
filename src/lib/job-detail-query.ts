@@ -47,6 +47,10 @@ export async function getJobDetail(id: string) {
           user: { select: { name: true, initials: true, color: true } },
         },
       },
+      serviceReports: {
+        orderBy: { version: "desc" },
+        select: { id: true, pdfUrl: true, version: true, generatedAt: true },
+      },
     },
   });
 }
