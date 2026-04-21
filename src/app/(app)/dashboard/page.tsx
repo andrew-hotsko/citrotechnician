@@ -54,7 +54,8 @@ export default async function DashboardPage() {
 
       <div className="mt-10 rounded-lg border border-dashed border-neutral-300 bg-white p-10 text-center">
         <p className="text-sm text-neutral-600">
-          Pipeline, Map, Calendar, and Tasks ship in Phase 2–4.
+          Full dashboard widgets — needs-attention list, tech workload,
+          California mini-map — ship in Phase 4.
         </p>
       </div>
     </div>
