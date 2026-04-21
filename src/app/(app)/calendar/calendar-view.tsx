@@ -185,6 +185,7 @@ export function CalendarView({
 
   return (
     <DndContext
+      id="calendar-dnd"
       sensors={sensors}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}

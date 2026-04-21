@@ -8,15 +8,20 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function signInWithMicrosoft() {
+  async function signInWithGoogle() {
     setLoading(true);
     setError(null);
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: "azure",
+      provider: "google",
       options: {
-        scopes: "email openid profile",
+        scopes: "email profile openid",
         redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          // Keep the picker instead of silently using the most recently used account.
+          prompt: "select_account",
+          access_type: "offline",
+        },
       },
     });
     if (error) {
@@ -41,11 +46,11 @@ export default function LoginPage() {
         </div>
 
         <Button
-          onClick={signInWithMicrosoft}
+          onClick={signInWithGoogle}
           disabled={loading}
           className="w-full h-10"
         >
-          {loading ? "Redirecting…" : "Sign in with Microsoft"}
+          {loading ? "Redirecting…" : "Sign in with Google"}
         </Button>
 
         {error ? (
