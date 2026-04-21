@@ -7,6 +7,8 @@ import { JobStageSelect } from "@/components/job-stage-select";
 import { JobTechSelect } from "@/components/job-tech-select";
 import { OfficeNotesEditor } from "@/components/office-notes-editor";
 import { ServiceReportSection } from "@/components/service-report-section";
+import { EditJobDialog } from "@/components/edit-job-dialog";
+import { DeleteJobButton } from "@/components/delete-job-button";
 import {
   formatCurrency,
   formatDate,
@@ -61,6 +63,16 @@ export function JobDetailContent({
             {job.property.zip ?? ""}
           </p>
         </div>
+        {canEdit && (
+          <div className="flex items-center gap-2 shrink-0">
+            <EditJobDialog job={job} />
+            <DeleteJobButton
+              jobId={job.id}
+              jobNumber={job.jobNumber}
+              propertyName={job.property.name}
+            />
+          </div>
+        )}
       </div>
 
       {/* Controls */}
@@ -221,12 +233,31 @@ export function JobDetailContent({
         )}
       </Section>
 
-      {/* Office notes */}
+      {/* Office notes — ops-only context (internal notes for the office) */}
       <Section title="Office notes" className="mb-6">
         <OfficeNotesEditor
           jobId={job.id}
           initialValue={job.officeNotes ?? ""}
           canEdit={canEdit}
+          field="officeNotes"
+          placeholder="Internal notes — customer conversations, scheduling context, access instructions…"
+          emptyLabel="No office notes."
+        />
+      </Section>
+
+      {/* Tech notes — what the field tech saw, wrote back to the office */}
+      <Section
+        title="Tech notes"
+        subtitle="What the tech observed on-site"
+        className="mb-6"
+      >
+        <OfficeNotesEditor
+          jobId={job.id}
+          initialValue={job.techNotes ?? ""}
+          canEdit={canEdit}
+          field="techNotes"
+          placeholder="Field observations, access notes, follow-up items…"
+          emptyLabel="No tech notes yet."
         />
       </Section>
 

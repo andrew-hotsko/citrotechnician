@@ -8,10 +8,16 @@ export function OfficeNotesEditor({
   jobId,
   initialValue,
   canEdit,
+  field = "officeNotes",
+  placeholder = "Add a note (saves on blur)…",
+  emptyLabel = "No office notes.",
 }: {
   jobId: string;
   initialValue: string;
   canEdit: boolean;
+  field?: "officeNotes" | "techNotes";
+  placeholder?: string;
+  emptyLabel?: string;
 }) {
   const [value, setValue] = useState(initialValue);
   const [savedValue, setSavedValue] = useState(initialValue);
@@ -24,7 +30,7 @@ export function OfficeNotesEditor({
     if (!dirty) return;
     start(async () => {
       try {
-        await updateJobNotes(jobId, "officeNotes", value);
+        await updateJobNotes(jobId, field, value);
         setSavedValue(value);
         setError(null);
       } catch (err) {
@@ -37,7 +43,7 @@ export function OfficeNotesEditor({
     return (
       <p className="text-[13px] text-neutral-700 whitespace-pre-wrap">
         {initialValue || (
-          <span className="text-neutral-400 italic">No office notes.</span>
+          <span className="text-neutral-400 italic">{emptyLabel}</span>
         )}
       </p>
     );
@@ -49,7 +55,7 @@ export function OfficeNotesEditor({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onBlur={save}
-        placeholder="Add a note (saves on blur)…"
+        placeholder={placeholder}
         rows={3}
         className={cn(
           "w-full resize-y rounded-md border border-neutral-200 bg-white px-2.5 py-2 text-[13px] placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400 focus:border-neutral-400 transition-opacity",

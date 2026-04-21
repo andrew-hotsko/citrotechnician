@@ -347,3 +347,277 @@ export async function updateJobNotes(
   revalidatePath(`/jobs/${jobId}`);
   return { ok: true as const };
 }
+
+// ---------------------------------------------------------------------------
+// Edit + delete — lets ops managers fix typos, update contacts, push dates,
+// correct pricing, etc. without an engineer.
+
+export type UpdateJobDetailsInput = {
+  // Customer-level changes. Applied to the customer shared across ALL of
+  // their properties (deliberately — customer has one email / phone / name).
+  customer?: {
+    name?: string;
+    email?: string | null;
+    phone?: string | null;
+  };
+  // Property-level changes. Address changes trigger a re-geocode.
+  property?: {
+    name?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zip?: string | null;
+    region?: Region;
+    sqft?: number;
+  };
+  // Job-level changes. Due-date changes rebuild the T-90/60/30/overdue
+  // reminder schedule for any reminder that hasn't fired yet.
+  job?: {
+    product?: Product;
+    sqftTreated?: number;
+    contractValue?: number | null;
+    lastServiceDate?: string | null; // ISO date
+    dueDate?: string; // ISO date
+    maintenanceIntervalMonths?: number;
+    scheduledDate?: string | null; // ISO datetime
+  };
+};
+
+export type UpdateJobDetailsResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+export async function updateJobDetails(
+  jobId: string,
+  input: UpdateJobDetailsInput,
+): Promise<UpdateJobDetailsResult> {
+  const user = await requireUser();
+  if (user.role !== "ADMIN" && user.role !== "OPS_MANAGER") {
+    return { ok: false, error: "Only admins and ops managers can edit jobs" };
+  }
+
+  const current = await prisma.job.findFirst({
+    where: { id: jobId, deletedAt: null },
+    include: {
+      property: { include: { customer: true } },
+    },
+  });
+  if (!current) return { ok: false, error: "Job not found" };
+
+  // ----- Re-geocode if address touched ----------------------------------
+  const propIn = input.property;
+  const addressChanged =
+    propIn &&
+    (propIn.address !== undefined ||
+      propIn.city !== undefined ||
+      propIn.state !== undefined ||
+      propIn.zip !== undefined);
+
+  let newCoords: { latitude: number; longitude: number } | null = null;
+  if (addressChanged) {
+    const geo = await geocodeAddress(
+      propIn!.address ?? current.property.address,
+      propIn!.city ?? current.property.city,
+      (propIn!.state ?? current.property.state).toUpperCase(),
+      propIn!.zip ?? current.property.zip ?? undefined,
+    );
+    if (!geo.ok) {
+      return {
+        ok: false,
+        error: `Couldn't geocode the new address: ${geo.error}`,
+      };
+    }
+    newCoords = { latitude: geo.value.latitude, longitude: geo.value.longitude };
+  }
+
+  // ----- Build changed-field diff for activity logs ---------------------
+  const changedFields: string[] = [];
+  if (input.customer) {
+    for (const k of Object.keys(input.customer) as Array<
+      keyof NonNullable<UpdateJobDetailsInput["customer"]>
+    >) {
+      if (
+        input.customer[k] !== undefined &&
+        input.customer[k] !== (current.property.customer[k] ?? null)
+      ) {
+        changedFields.push(`customer.${k}`);
+      }
+    }
+  }
+  if (propIn) {
+    for (const k of Object.keys(propIn) as Array<
+      keyof NonNullable<UpdateJobDetailsInput["property"]>
+    >) {
+      if (propIn[k] !== undefined) changedFields.push(`property.${k}`);
+    }
+  }
+  if (input.job) {
+    for (const k of Object.keys(input.job) as Array<
+      keyof NonNullable<UpdateJobDetailsInput["job"]>
+    >) {
+      if (input.job[k] !== undefined) changedFields.push(`job.${k}`);
+    }
+  }
+
+  if (changedFields.length === 0) {
+    return { ok: true };
+  }
+
+  // ----- Transaction ----------------------------------------------------
+  const newDueDate = input.job?.dueDate
+    ? new Date(input.job.dueDate)
+    : current.dueDate;
+  const dueDateChanged =
+    input.job?.dueDate !== undefined &&
+    newDueDate.getTime() !== current.dueDate.getTime();
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      if (input.customer) {
+        const c = input.customer;
+        await tx.customer.update({
+          where: { id: current.property.customer.id },
+          data: {
+            name: c.name?.trim() || undefined,
+            email: c.email === null ? null : c.email?.trim() || undefined,
+            phone: c.phone === null ? null : c.phone?.trim() || undefined,
+          },
+        });
+      }
+
+      if (propIn) {
+        await tx.property.update({
+          where: { id: current.property.id },
+          data: {
+            name: propIn.name?.trim() || undefined,
+            address: propIn.address?.trim() || undefined,
+            city: propIn.city?.trim() || undefined,
+            state: propIn.state?.trim().toUpperCase() || undefined,
+            zip: propIn.zip === null ? null : propIn.zip?.trim() || undefined,
+            region: propIn.region ?? undefined,
+            sqft:
+              typeof propIn.sqft === "number" && propIn.sqft > 0
+                ? propIn.sqft
+                : undefined,
+            ...(newCoords ?? {}),
+          },
+        });
+      }
+
+      if (input.job) {
+        const j = input.job;
+        await tx.job.update({
+          where: { id: jobId },
+          data: {
+            product: j.product ?? undefined,
+            sqftTreated:
+              typeof j.sqftTreated === "number" && j.sqftTreated > 0
+                ? j.sqftTreated
+                : undefined,
+            contractValue:
+              j.contractValue === null
+                ? null
+                : j.contractValue ?? undefined,
+            lastServiceDate:
+              j.lastServiceDate === null
+                ? null
+                : j.lastServiceDate
+                  ? new Date(j.lastServiceDate)
+                  : undefined,
+            dueDate: j.dueDate ? new Date(j.dueDate) : undefined,
+            maintenanceIntervalMonths:
+              typeof j.maintenanceIntervalMonths === "number" &&
+              j.maintenanceIntervalMonths > 0
+                ? j.maintenanceIntervalMonths
+                : undefined,
+            scheduledDate:
+              j.scheduledDate === null
+                ? null
+                : j.scheduledDate
+                  ? new Date(j.scheduledDate)
+                  : undefined,
+          },
+        });
+      }
+
+      // Rebuild the reminder schedule if the due date moved. Only delete
+      // untriggered rows — historical (triggered) reminders stay so the
+      // activity log still references valid rows.
+      if (dueDateChanged) {
+        await tx.maintenanceReminder.deleteMany({
+          where: { jobId, triggered: false },
+        });
+        await tx.maintenanceReminder.createMany({
+          data: maintenanceReminderScheduleFor(jobId, newDueDate),
+        });
+      }
+
+      await tx.activityLog.create({
+        data: {
+          jobId,
+          userId: user.id,
+          action: "edited",
+          description: `Edited ${changedFields.length} field(s): ${changedFields.slice(0, 4).join(", ")}${changedFields.length > 4 ? `, +${changedFields.length - 4} more` : ""}`,
+          metadata: { fields: changedFields, dueDateChanged },
+        },
+      });
+    });
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Update failed",
+    };
+  }
+
+  revalidatePath(`/jobs/${jobId}`);
+  revalidatePath("/jobs");
+  revalidatePath("/pipeline");
+  revalidatePath("/map");
+  revalidatePath("/calendar");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+/**
+ * Soft-delete a job. Sets deletedAt so the row disappears from every list,
+ * but stays in the DB for audit / accidental-delete recovery. The server
+ * actions and queries all filter on `deletedAt: null` so removal is
+ * instantaneous across every view.
+ */
+export async function softDeleteJob(
+  jobId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await requireUser();
+  if (user.role !== "ADMIN" && user.role !== "OPS_MANAGER") {
+    return { ok: false, error: "Only admins and ops managers can delete jobs" };
+  }
+
+  const job = await prisma.job.findFirst({
+    where: { id: jobId, deletedAt: null },
+    select: { id: true, jobNumber: true },
+  });
+  if (!job) return { ok: false, error: "Job not found" };
+
+  await prisma.$transaction([
+    prisma.job.update({
+      where: { id: jobId },
+      data: { deletedAt: new Date() },
+    }),
+    prisma.activityLog.create({
+      data: {
+        jobId,
+        userId: user.id,
+        action: "deleted",
+        description: `Soft-deleted ${job.jobNumber}`,
+      },
+    }),
+  ]);
+
+  revalidatePath(`/jobs/${jobId}`);
+  revalidatePath("/jobs");
+  revalidatePath("/pipeline");
+  revalidatePath("/map");
+  revalidatePath("/calendar");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
