@@ -28,12 +28,12 @@ const LINKS: SettingLink[] = [
     status: "coming soon",
   },
   {
-    href: "/settings",
+    href: "/settings/team",
     icon: Users,
     title: "Team",
     description:
-      "Promote users to admin / ops manager / tech. Seeded users sync to Supabase auth on first login.",
-    status: "coming soon",
+      "Promote users to admin / ops manager / tech. Toggle active status and edit tech avatar colors.",
+    status: "available",
   },
   {
     href: "/settings",
