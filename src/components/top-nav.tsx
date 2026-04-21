@@ -42,18 +42,15 @@ export function TopNav({
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 h-14 border-b border-neutral-200/80 bg-white/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/60">
+    <header className="sticky top-0 z-40 h-14 border-b border-neutral-200 bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/70">
       <div className="flex h-full items-center gap-6 px-4">
         <Link
           href="/dashboard"
           className="flex items-center gap-2 transition-opacity hover:opacity-80"
         >
           <div
-            className="h-6 w-6 rounded-md grid place-items-center text-white text-[11px] font-semibold shadow-elev-1 card-glow"
-            style={{
-              background:
-                "linear-gradient(135deg, oklch(0.66 0.19 42) 0%, oklch(0.6 0.21 38) 100%)",
-            }}
+            className="h-6 w-6 rounded-md grid place-items-center text-white text-[11px] font-semibold"
+            style={{ backgroundColor: "oklch(0.64 0.19 42)" }}
           >
             C
           </div>

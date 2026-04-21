@@ -59,7 +59,7 @@ export function KanbanCardSkeleton() {
 /** Stat card skeleton for the dashboard. */
 export function StatCardSkeleton() {
   return (
-    <div className="rounded-xl border border-neutral-200/80 bg-white p-4 shadow-elev-1">
+    <div className="rounded-xl border border-neutral-200 bg-white p-4">
       <div className="flex items-center gap-1.5 mb-3">
         <Skeleton className="h-1.5 w-1.5 rounded-full" />
         <Skeleton className="h-2.5 w-16" />

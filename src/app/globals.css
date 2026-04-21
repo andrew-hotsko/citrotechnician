@@ -64,10 +64,12 @@
      Anything in between is noise and should be pulled into one of the above.
      ------------------------------------------------------------------------- */
 
-  /* Warm-neutral background: subtly orange-tinted instead of pure gray.
-     Feels alive at a glance but still reads as "neutral". */
-  --color-surface: #fafaf9;
+  /* Page surface is a pure-neutral off-white. White cards sit on top
+     with crisp contrast via hairline borders \u2014 not a warm-on-warm wash. */
+  --color-surface: oklch(0.985 0 0);        /* ~neutral-50 */
   --color-surface-raised: #ffffff;
+  --color-hairline: oklch(0.92 0 0);        /* ~neutral-200 */
+  --color-hairline-soft: oklch(0.94 0 0);   /* ~neutral-100, for dividers */
 
   /* Elevation shadows, tuned for a near-white surface. Soft, never heavy. */
   --shadow-elevation-1: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 1px 0 rgb(15 23 42 / 0.03);
