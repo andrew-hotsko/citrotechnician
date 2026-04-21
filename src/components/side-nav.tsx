@@ -87,8 +87,8 @@ export function SideNav({
       </nav>
 
       {/* Footer: command palette, settings, user */}
-      <div className="px-2 py-3 border-t border-neutral-100 space-y-2">
-        <div className="px-1">
+      <div className="px-2 py-3 border-t border-neutral-100 space-y-1">
+        <div className="px-1 pb-1">
           <CommandPaletteTrigger />
         </div>
         <Link
@@ -103,8 +103,18 @@ export function SideNav({
           <Settings className="h-4 w-4 text-neutral-500" />
           Settings
         </Link>
-        <div className="pt-1">
+        {/* User row — Slack/Linear pattern: avatar + name + role,
+            whole row is the dropdown trigger via UserMenu. */}
+        <div className="mt-2 pt-2 border-t border-neutral-100 flex items-center gap-2 px-1">
           <UserMenu user={user} />
+          <div className="min-w-0 flex-1">
+            <div className="text-[12px] font-medium text-neutral-900 truncate">
+              {user.name}
+            </div>
+            <div className="text-[10px] uppercase tracking-wider text-neutral-500 truncate">
+              {user.role.replace("_", " ")}
+            </div>
+          </div>
         </div>
       </div>
     </aside>

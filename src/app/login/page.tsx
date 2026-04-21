@@ -30,42 +30,43 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="relative min-h-screen grid place-items-center p-6 overflow-hidden">
-      {/* Ambient orange halo in the background */}
+    <main className="relative min-h-screen grid place-items-center p-6 bg-neutral-50">
+      {/* Hairline grid — very subtle; just enough to feel less flat
+          without shouting "old-school HTML" like the halo did. */}
       <div
-        className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[520px] w-[900px] opacity-60 blur-3xl"
-        style={{
-          background:
-            "radial-gradient(ellipse at center, oklch(0.88 0.12 60 / 0.45) 0%, transparent 70%)",
-        }}
-        aria-hidden
-      />
-      {/* Subtle grid */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
+        className="pointer-events-none absolute inset-0 opacity-[0.035]"
         style={{
           backgroundImage:
-            "linear-gradient(to right, oklch(0.145 0 0) 1px, transparent 1px), linear-gradient(to bottom, oklch(0.145 0 0) 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
-          maskImage: "radial-gradient(ellipse at center, black 35%, transparent 80%)",
+            "linear-gradient(to right, oklch(0.2 0 0) 1px, transparent 1px), linear-gradient(to bottom, oklch(0.2 0 0) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+          maskImage:
+            "radial-gradient(ellipse at center, black 40%, transparent 75%)",
         }}
         aria-hidden
       />
 
-      <div className="relative w-full max-w-sm animate-enter">
-        <div className="rounded-xl border border-neutral-200 bg-white p-8 shadow-elev-2">
-          <div className="flex flex-col items-center text-center mb-7">
-            <div
-              className="h-11 w-11 rounded-lg grid place-items-center text-white font-semibold text-lg"
-              style={{ backgroundColor: "oklch(0.64 0.19 42)" }}
-            >
-              C
-            </div>
-            <h1 className="text-[18px] font-semibold tracking-tight mt-4">
-              CitroTech Jobs
+      <div className="relative w-full max-w-[380px] animate-enter">
+        {/* Brand block — lives above the card so the card reads as
+            form-only, like Linear / Vercel / Notion auth screens. */}
+        <div className="flex items-center gap-2.5 mb-8 justify-center">
+          <div
+            className="h-8 w-8 rounded-lg grid place-items-center text-white text-[13px] font-semibold shadow-elev-1"
+            style={{ backgroundColor: "oklch(0.64 0.19 42)" }}
+          >
+            C
+          </div>
+          <span className="text-[15px] font-semibold tracking-tight text-neutral-900">
+            CitroTech Jobs
+          </span>
+        </div>
+
+        <div className="rounded-2xl border border-neutral-200/80 bg-white p-7 shadow-elev-2">
+          <div className="mb-6">
+            <h1 className="text-[18px] font-semibold tracking-tight text-neutral-900">
+              Sign in
             </h1>
-            <p className="text-[13px] text-neutral-500 mt-1">
-              Sign in to continue to your workspace
+            <p className="text-[13px] text-neutral-600 mt-1">
+              Continue to your workspace.
             </p>
           </div>
 
@@ -73,7 +74,7 @@ export default function LoginPage() {
             type="button"
             onClick={signInWithGoogle}
             disabled={loading}
-            className="group inline-flex w-full items-center justify-center gap-2 h-10 rounded-md bg-neutral-900 px-4 text-[13px] font-medium text-white shadow-elev-1 transition-all hover:bg-neutral-800 hover:shadow-elev-2 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+            className="group inline-flex w-full items-center justify-center gap-2 h-10 rounded-lg bg-neutral-900 px-4 text-[13px] font-medium text-white shadow-elev-1 transition-all hover:bg-neutral-800 hover:shadow-elev-2 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
@@ -83,7 +84,7 @@ export default function LoginPage() {
             ) : (
               <>
                 <GoogleMark />
-                Sign in with Google
+                Continue with Google
               </>
             )}
           </button>
@@ -93,11 +94,11 @@ export default function LoginPage() {
               {error}
             </p>
           )}
-
-          <p className="mt-6 text-center text-[11px] text-neutral-400">
-            Access is restricted to authorized CitroTech team members.
-          </p>
         </div>
+
+        <p className="mt-5 text-center text-[11px] text-neutral-500">
+          Access is restricted to authorized CitroTech team members.
+        </p>
       </div>
     </main>
   );
