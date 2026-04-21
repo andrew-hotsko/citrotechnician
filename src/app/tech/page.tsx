@@ -20,7 +20,7 @@ export default async function TechHomePage() {
       <p className="text-[11px] uppercase tracking-wider text-neutral-500 font-medium">
         Hey {firstName}
       </p>
-      <h2 className="text-xl font-semibold tracking-tight mt-0.5">
+      <h2 className="text-[22px] font-semibold tracking-tight mt-1.5">
         {today.length === 0
           ? "Nothing on the books today"
           : today.length === 1

@@ -55,55 +55,45 @@ export default async function DashboardPage() {
   return (
     <div className="max-w-[1400px] mx-auto px-6 py-6 animate-enter">
       {/* Greeting */}
-      <div className="flex items-baseline justify-between gap-4">
-        <div>
-          <p className="text-[11px] uppercase tracking-wider font-medium text-neutral-500">
-            {format(now, "EEEE · MMMM d")}
-          </p>
-          <h1 className="text-[28px] font-semibold tracking-tight mt-1 leading-none">
-            Good to see you,{" "}
-            <span className="bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
-              {firstName}
-            </span>
-            .
-          </h1>
-        </div>
+      <div>
+        <p className="text-[10px] uppercase tracking-wider font-medium text-neutral-500">
+          {format(now, "EEEE, MMMM d")}
+        </p>
+        <h1 className="text-[22px] font-semibold tracking-tight mt-1.5">
+          Good to see you, {firstName}.
+        </h1>
       </div>
 
       {/* Stat row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6 animate-enter-stagger">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 animate-enter-stagger">
         <StatCard
           label="Overdue"
           value={overdue}
           tone="red"
           href="/jobs?stage=UPCOMING,OUTREACH,CONFIRMED,SCHEDULED,IN_PROGRESS"
-          hint={overdue === 0 ? "Nothing past due" : "Needs immediate outreach"}
         />
         <StatCard
           label="Due in 60 days"
           value={dueSoon}
           tone="amber"
           href="/jobs"
-          hint="Get ahead of the curve"
         />
         <StatCard
           label="Scheduled"
           value={scheduled}
           tone="blue"
           href="/calendar"
-          hint="Confirmed on the calendar"
         />
         <StatCard
           label="This week"
           value={thisWeek}
           tone="neutral"
           href="/calendar"
-          hint="Jobs in the next 7 days"
         />
       </div>
 
       {/* Widget grid */}
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4 animate-enter-stagger">
+      <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 animate-enter-stagger">
         <div className="lg:col-span-2 space-y-4">
           <NeedsAttention jobs={attention} />
           <UpcomingWeek buckets={upcoming} />

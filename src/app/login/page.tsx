@@ -53,14 +53,11 @@ export default function LoginPage() {
       />
 
       <div className="relative w-full max-w-sm animate-enter">
-        <div className="rounded-xl border border-neutral-200/80 bg-white/95 backdrop-blur p-8 shadow-elev-2 card-glow">
+        <div className="rounded-xl border border-neutral-200 bg-white p-8 shadow-elev-2">
           <div className="flex flex-col items-center text-center mb-7">
             <div
-              className="h-11 w-11 rounded-lg grid place-items-center text-white font-semibold text-lg shadow-elev-2 card-glow"
-              style={{
-                background:
-                  "linear-gradient(135deg, oklch(0.68 0.19 42) 0%, oklch(0.6 0.21 38) 100%)",
-              }}
+              className="h-11 w-11 rounded-lg grid place-items-center text-white font-semibold text-lg"
+              style={{ backgroundColor: "oklch(0.64 0.19 42)" }}
             >
               C
             </div>

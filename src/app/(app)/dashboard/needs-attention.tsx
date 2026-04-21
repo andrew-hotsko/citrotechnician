@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 import type { NeedsAttentionJob } from "@/lib/dashboard-query";
-import { StageBadge, RegionBadge, ProductBadge } from "@/components/badges";
 import { TechAvatar } from "@/components/tech-avatar";
 import {
   formatDueIn,
@@ -12,17 +10,16 @@ import { cn } from "@/lib/utils";
 
 export function NeedsAttention({ jobs }: { jobs: NeedsAttentionJob[] }) {
   return (
-    <section className="rounded-xl border border-neutral-200/80 bg-white card-glow overflow-hidden">
+    <section className="rounded-xl border border-neutral-200 bg-white overflow-hidden">
       <header className="flex items-baseline justify-between px-4 py-3 border-b border-neutral-100">
         <h2 className="text-[13px] font-semibold tracking-tight">
           Needs attention
         </h2>
         <Link
           href="/jobs?stage=UPCOMING,OUTREACH,CONFIRMED,SCHEDULED,IN_PROGRESS"
-          className="group inline-flex items-center gap-0.5 text-[11px] font-medium text-neutral-500 hover:text-neutral-900"
+          className="text-[11px] font-medium text-neutral-500 hover:text-neutral-900 transition-colors"
         >
           View all
-          <ArrowUpRight className="h-3 w-3 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
         </Link>
       </header>
 
@@ -38,34 +35,27 @@ export function NeedsAttention({ jobs }: { jobs: NeedsAttentionJob[] }) {
               <li key={j.id}>
                 <Link
                   href={`/jobs/${j.id}`}
-                  className="group flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-neutral-50/80"
+                  className="flex items-center gap-4 px-4 py-3 transition-colors hover:bg-neutral-50"
                 >
-                  <div className="w-16 shrink-0">
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
-                        URGENCY_TONE[urgency],
-                      )}
-                    >
-                      {formatDueIn(j.dueDate)}
-                    </span>
-                  </div>
+                  <span
+                    className={cn(
+                      "inline-flex items-center shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold tabular-nums whitespace-nowrap min-w-[64px] justify-center",
+                      URGENCY_TONE[urgency],
+                    )}
+                  >
+                    {formatDueIn(j.dueDate)}
+                  </span>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 text-[10px]">
-                      <span className="font-mono text-neutral-500">
-                        {j.jobNumber}
-                      </span>
-                      <RegionBadge region={j.property.region} />
-                      <ProductBadge product={j.product} />
-                    </div>
-                    <div className="text-[13px] font-medium tracking-tight mt-0.5 truncate">
+                    <div className="text-[13px] font-medium tracking-tight truncate">
                       {j.property.name}
                     </div>
+                    <div className="text-[11px] text-neutral-500 truncate mt-0.5">
+                      <span className="font-mono">{j.jobNumber}</span>
+                      <span className="mx-1.5 text-neutral-300">·</span>
+                      {j.property.city}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <StageBadge stage={j.stage} />
-                    <TechAvatar tech={j.assignedTech} size="sm" />
-                  </div>
+                  <TechAvatar tech={j.assignedTech} size="sm" />
                 </Link>
               </li>
             );
