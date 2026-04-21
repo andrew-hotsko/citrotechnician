@@ -10,6 +10,8 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
+
+  /* shadcn tokens */
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -39,6 +41,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -46,6 +49,25 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* -------------------------------------------------------------------------
+     CitroTech design tokens
+     ------------------------------------------------------------------------- */
+
+  /* Warm-neutral background: subtly orange-tinted instead of pure gray.
+     Feels alive at a glance but still reads as "neutral". */
+  --color-surface: #fafaf9;
+  --color-surface-raised: #ffffff;
+
+  /* Elevation shadows, tuned for a near-white surface. Soft, never heavy. */
+  --shadow-elevation-1: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 1px 0 rgb(15 23 42 / 0.03);
+  --shadow-elevation-2: 0 4px 12px -4px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.04);
+  --shadow-elevation-3: 0 16px 32px -12px rgb(15 23 42 / 0.12), 0 4px 8px -4px rgb(15 23 42 / 0.06);
+
+  /* Motion tokens — durations. */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+  --ease-snappy: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :root {
@@ -123,8 +145,116 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings:
+      "cv11" 1,  /* alternative i/l */
+      "ss01" 1,  /* stylistic alts */
+      "ss03" 1,
+      "cv01" 1;
+    font-variant-numeric: tabular-nums;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   html {
     @apply font-sans;
+  }
+
+  /* Tighter headline typography with stronger weight contrast. */
+  h1 {
+    letter-spacing: -0.02em;
+    font-feature-settings: "cv11" 1, "ss01" 1, "kern" 1;
+  }
+  h2, h3 {
+    letter-spacing: -0.015em;
+  }
+
+  /* Focus ring that matches the brand orange, not the default neutral. */
+  :focus-visible {
+    outline-color: oklch(0.66 0.17 42);
+  }
+
+  /* Selection highlight with the brand tint. */
+  ::selection {
+    background-color: oklch(0.92 0.08 60);
+    color: oklch(0.25 0 0);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Utility classes for the new tokens
+   ----------------------------------------------------------------------------- */
+@layer utilities {
+  .shadow-elev-1 { box-shadow: var(--shadow-elevation-1); }
+  .shadow-elev-2 { box-shadow: var(--shadow-elevation-2); }
+  .shadow-elev-3 { box-shadow: var(--shadow-elevation-3); }
+
+  .ease-standard    { transition-timing-function: var(--ease-standard); }
+  .ease-emphasized  { transition-timing-function: var(--ease-emphasized); }
+  .ease-snappy      { transition-timing-function: var(--ease-snappy); }
+
+  /* Subtle inset highlight along the top of a card — the "Linear glow". */
+  .card-glow {
+    box-shadow:
+      var(--shadow-elevation-1),
+      inset 0 1px 0 0 rgb(255 255 255 / 0.6);
+  }
+  .card-glow-hover {
+    transition: box-shadow 200ms var(--ease-standard), transform 200ms var(--ease-standard);
+  }
+  .card-glow-hover:hover {
+    box-shadow:
+      var(--shadow-elevation-2),
+      inset 0 1px 0 0 rgb(255 255 255 / 0.8);
+    transform: translateY(-1px);
+  }
+
+  /* Smooth fade-up entrance for page sections. */
+  .animate-enter {
+    animation: enter 280ms var(--ease-snappy) both;
+  }
+  .animate-enter-stagger > * {
+    animation: enter 320ms var(--ease-snappy) both;
+  }
+  .animate-enter-stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .animate-enter-stagger > *:nth-child(2) { animation-delay: 40ms; }
+  .animate-enter-stagger > *:nth-child(3) { animation-delay: 80ms; }
+  .animate-enter-stagger > *:nth-child(4) { animation-delay: 120ms; }
+  .animate-enter-stagger > *:nth-child(5) { animation-delay: 160ms; }
+  .animate-enter-stagger > *:nth-child(6) { animation-delay: 200ms; }
+
+  @keyframes enter {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Numeric flash — a tiny blip to draw the eye on a value change. */
+  .animate-flash {
+    animation: flash 600ms var(--ease-standard);
+  }
+  @keyframes flash {
+    0% { background-color: oklch(0.92 0.1 60 / 0.4); }
+    100% { background-color: transparent; }
+  }
+
+  /* Hairline border with slightly stronger opacity — reads more crisp. */
+  .border-hairline { border-color: oklch(0.92 0 0); }
+  .border-hairline-strong { border-color: oklch(0.86 0 0); }
+}
+
+/* Respect reduced motion — turn off all entrance animations. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-enter,
+  .animate-enter-stagger > *,
+  .animate-flash,
+  .card-glow-hover {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
   }
 }

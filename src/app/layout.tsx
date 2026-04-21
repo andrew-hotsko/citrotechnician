@@ -26,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full bg-neutral-50 text-neutral-900 font-sans [font-feature-settings:'cv11','ss01'] tabular-nums">
+    <html lang="en" className="h-full">
+      <body className="min-h-full bg-[var(--color-surface)] text-neutral-900 font-sans">
         {children}
       </body>
     </html>
