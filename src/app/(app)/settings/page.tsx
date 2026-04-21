@@ -20,12 +20,12 @@ const LINKS: SettingLink[] = [
     status: "available",
   },
   {
-    href: "/settings",
+    href: "/settings/templates",
     icon: ListChecks,
     title: "Checklist templates",
     description:
       "Edit the per-product checklist every tech sees when they open a job. MFB-31 / MFB-34 / MFB-35-FM.",
-    status: "coming soon",
+    status: "available",
   },
   {
     href: "/settings/team",
