@@ -65,7 +65,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stat row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6 animate-enter-stagger">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 animate-enter-stagger">
         <StatCard
           label="Overdue"
           value={overdue}
@@ -93,7 +93,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Widget grid */}
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4 animate-enter-stagger">
+      <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 animate-enter-stagger">
         <div className="lg:col-span-2 space-y-4">
           <NeedsAttention jobs={attention} />
           <UpcomingWeek buckets={upcoming} />

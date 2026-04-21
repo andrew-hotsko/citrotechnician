@@ -60,14 +60,14 @@ export function UpcomingWeek({
             return (
               <div
                 key={i}
-                className="px-1.5 py-2 text-center text-[10px] text-neutral-300"
+                className="px-2 py-2 text-center text-[10px] text-neutral-300"
               >
                 —
               </div>
             );
           }
           return (
-            <div key={i} className="px-1.5 py-1.5 space-y-1">
+            <div key={i} className="px-2 py-2 space-y-1">
               {jobs.slice(0, 3).map((j) => (
                 <Link
                   key={j.id}

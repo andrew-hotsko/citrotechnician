@@ -18,7 +18,7 @@ export function RecentActivityFeed({ events }: { events: RecentActivity[] }) {
       ) : (
         <ul className="divide-y divide-neutral-100">
           {events.map((e) => (
-            <li key={e.id} className="px-4 py-2.5">
+            <li key={e.id} className="px-4 py-3">
               <p className="text-[12px] text-neutral-700 leading-snug">
                 <span className="font-medium">
                   {e.user?.name?.split(" ")[0] ?? "System"}
