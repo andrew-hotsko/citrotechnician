@@ -1,19 +1,19 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { TopNav } from "@/components/top-nav";
+import { TechNav } from "@/components/tech/tech-nav";
 
-export default async function AppLayout({
+export default async function TechLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (user.role === "TECH") redirect("/tech");
+  if (user.role !== "TECH" && user.role !== "ADMIN") redirect("/dashboard");
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <TopNav
+    <div className="flex min-h-screen flex-col bg-neutral-50">
+      <TechNav
         user={{
           name: user.name,
           email: user.email,

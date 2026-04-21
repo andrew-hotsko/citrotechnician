@@ -1,0 +1,19 @@
+{
+  "name": "CitroTech Jobs",
+  "short_name": "CitroTech",
+  "description": "Internal job management for CitroTech field technicians",
+  "start_url": "/tech",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fafafa",
+  "theme_color": "#ea580c",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
