@@ -55,19 +55,13 @@ export default async function DashboardPage() {
   return (
     <div className="max-w-[1400px] mx-auto px-6 py-6 animate-enter">
       {/* Greeting */}
-      <div className="flex items-baseline justify-between gap-4">
-        <div>
-          <p className="text-[11px] uppercase tracking-wider font-medium text-neutral-500">
-            {format(now, "EEEE · MMMM d")}
-          </p>
-          <h1 className="text-[28px] font-semibold tracking-tight mt-1 leading-none">
-            Good to see you,{" "}
-            <span className="bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
-              {firstName}
-            </span>
-            .
-          </h1>
-        </div>
+      <div>
+        <p className="text-[10px] uppercase tracking-wider font-medium text-neutral-500">
+          {format(now, "EEEE, MMMM d")}
+        </p>
+        <h1 className="text-[22px] font-semibold tracking-tight mt-1.5">
+          Good to see you, {firstName}.
+        </h1>
       </div>
 
       {/* Stat row */}

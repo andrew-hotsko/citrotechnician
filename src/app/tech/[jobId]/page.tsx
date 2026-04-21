@@ -45,7 +45,7 @@ export default async function TechJobBrief({
             <ProductBadge product={job.product} />
           </div>
         </div>
-        <h1 className="text-[17px] font-semibold tracking-tight">
+        <h1 className="text-[18px] font-semibold tracking-tight">
           {job.property.name}
         </h1>
         <p className="text-[13px] text-neutral-600 mt-0.5">

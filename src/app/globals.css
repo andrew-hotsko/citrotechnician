@@ -52,6 +52,16 @@
 
   /* -------------------------------------------------------------------------
      CitroTech design tokens
+
+     Type scale (lock — do not add in-between sizes):
+       28px  font-semibold tracking-tight   -> hero display (stat values)
+       22px  font-semibold tracking-tight   -> hero greeting (dashboard h1)
+       18px  font-semibold tracking-tight   -> page title (h1 on all pages)
+       13px  font-normal / font-semibold    -> body + section heading
+       11px  font-medium                    -> meta, caption
+       10px  font-medium uppercase tracking-wider -> micro-caps label
+
+     Anything in between is noise and should be pulled into one of the above.
      ------------------------------------------------------------------------- */
 
   /* Warm-neutral background: subtly orange-tinted instead of pure gray.

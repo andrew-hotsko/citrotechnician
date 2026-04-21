@@ -60,7 +60,7 @@ export function StatCard({
               />
             )}
           </div>
-          <div className="mt-2 text-3xl font-semibold tracking-tight tabular-nums leading-none">
+          <div className="mt-3 text-[28px] font-semibold tracking-tight tabular-nums leading-none">
             {value}
           </div>
           {hint && (
