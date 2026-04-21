@@ -8,8 +8,6 @@ import {
   Map,
   Calendar,
   ListTodo,
-  Building2,
-  Users,
   Inbox,
   Settings,
 } from "lucide-react";
@@ -23,14 +21,14 @@ type NavItem = {
   icon: React.ComponentType<{ className?: string }>;
 };
 
+// Properties and Customers are Phase 2.5 stubs — hidden from nav until
+// they're real. The routes still exist if someone deep-links to them.
 const nav: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/pipeline", label: "Pipeline", icon: Kanban },
   { href: "/map", label: "Map", icon: Map },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/jobs", label: "Jobs", icon: ListTodo },
-  { href: "/properties", label: "Properties", icon: Building2 },
-  { href: "/customers", label: "Customers", icon: Users },
   { href: "/tasks", label: "Tasks", icon: Inbox },
 ];
 

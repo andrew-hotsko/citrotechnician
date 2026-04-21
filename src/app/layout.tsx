@@ -4,13 +4,35 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "CitroTech Jobs",
-  description: "Internal job management for CitroTech",
+  description: "Internal job management for CitroTech field technicians",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   appleWebApp: {
     capable: true,
     title: "CitroTech",
     statusBarStyle: "default",
   },
+  openGraph: {
+    title: "CitroTech Jobs",
+    description: "Internal job management for CitroTech field technicians",
+    siteName: "CitroTech Jobs",
+    type: "website",
+    images: [{ url: "/icon-512.png", width: 512, height: 512, alt: "CitroTech" }],
+  },
+  twitter: {
+    card: "summary",
+    title: "CitroTech Jobs",
+    description: "Internal job management for CitroTech field technicians",
+    images: ["/icon-512.png"],
+  },
+  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
