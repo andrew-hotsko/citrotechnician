@@ -7,8 +7,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Geist Sans/Mono are wired onto <html> via CSS variables by the font
+     loader in app/layout.tsx. We fall back to system fonts if the
+     variable is missing so SSR renders sanely before the font loads. */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
   --font-heading: var(--font-sans);
 
   /* shadcn tokens */
@@ -257,6 +260,10 @@
   /* Hairline border with slightly stronger opacity — reads more crisp. */
   .border-hairline { border-color: oklch(0.92 0 0); }
   .border-hairline-strong { border-color: oklch(0.86 0 0); }
+
+  /* Hide native scrollbars on horizontal scroll strips (mobile nav) */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
 /* Respect reduced motion — turn off all entrance animations. */

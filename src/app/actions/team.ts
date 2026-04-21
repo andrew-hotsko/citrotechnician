@@ -15,6 +15,79 @@ async function requireAdmin() {
   return user;
 }
 
+function deriveInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+/**
+ * Pre-create a User row so the person can sign in and be auto-linked by
+ * email. No password/invitation email — we lean on Google OAuth, which
+ * means any Google account (personal or Workspace) matching the email
+ * lands on a linked account on first login.
+ *
+ * This is the UI mirror of what the seed script does.
+ */
+export async function createTeamMember(input: {
+  name: string;
+  email: string;
+  role: Role;
+  color?: string;
+  initials?: string;
+}) {
+  const actor = await requireAdmin();
+
+  const name = input.name.trim();
+  const email = input.email.trim().toLowerCase();
+  if (!name) throw new Error("Name is required");
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error("Enter a valid email address");
+  }
+  if (!VALID_ROLES.includes(input.role)) {
+    throw new Error("Invalid role");
+  }
+
+  // Duplicate-email guard. Case folded above.
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    throw new Error(`${email} is already on the team (${existing.name})`);
+  }
+
+  const initials = input.initials?.trim().toUpperCase() || deriveInitials(name);
+  if (initials.length > 3) {
+    throw new Error("Initials must be at most 3 characters");
+  }
+
+  const created = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: {
+        email,
+        name,
+        role: input.role,
+        initials,
+        color: input.color?.trim() || null,
+        active: true,
+        // supabaseUserId stays null — auto-linked on first Google sign-in.
+      },
+    });
+    await tx.activityLog.create({
+      data: {
+        userId: actor.id,
+        action: "user_invited",
+        description: `Invited ${name} (${email}) as ${input.role}`,
+        metadata: { targetUserId: user.id, role: input.role },
+      },
+    });
+    return user;
+  });
+
+  revalidatePath("/settings/team");
+  return { ok: true as const, userId: created.id };
+}
+
 /** Updates a user's role. Prevents demoting the last active admin. */
 export async function updateUserRole(userId: string, newRole: Role) {
   const actor = await requireAdmin();

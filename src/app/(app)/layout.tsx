@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { TopNav } from "@/components/top-nav";
+import { SideNav, MobileNav } from "@/components/side-nav";
 import { CommandPalette } from "@/components/command-palette";
 
 export default async function AppLayout({
@@ -37,17 +37,20 @@ export default async function AppLayout({
     }),
   ]);
 
+  const navUser = {
+    name: user.name,
+    email: user.email,
+    initials: user.initials,
+    role: user.role,
+  };
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <TopNav
-        user={{
-          name: user.name,
-          email: user.email,
-          initials: user.initials,
-          role: user.role,
-        }}
-      />
-      <main className="flex-1">{children}</main>
+    <div className="flex min-h-screen">
+      <SideNav user={navUser} />
+      <div className="flex-1 flex flex-col min-w-0">
+        <MobileNav user={navUser} />
+        <main className="flex-1">{children}</main>
+      </div>
       <CommandPalette
         jobs={paletteJobs.map((j) => ({
           id: j.id,

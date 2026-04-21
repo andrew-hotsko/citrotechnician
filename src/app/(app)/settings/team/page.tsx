@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { TeamList } from "./team-list";
+import { InviteMemberDialog } from "./invite-member-dialog";
 
 export default async function TeamSettingsPage() {
   const user = await getCurrentUser();
@@ -35,13 +36,16 @@ export default async function TeamSettingsPage() {
         <ChevronLeft className="h-3 w-3" />
         Settings
       </Link>
-      <div className="mt-3">
-        <h1 className="text-[18px] font-semibold tracking-tight">Team</h1>
-        <p className="text-[13px] text-neutral-500 mt-1 leading-relaxed max-w-xl">
-          Every user who has ever signed in appears here. Promote, demote, or
-          deactivate. Seeded techs who haven&apos;t logged in yet show as
-          &quot;Unlinked&quot; until they sign in for the first time.
-        </p>
+      <div className="mt-3 flex items-start justify-between gap-6">
+        <div>
+          <h1 className="text-[18px] font-semibold tracking-tight">Team</h1>
+          <p className="text-[13px] text-neutral-500 mt-1 leading-relaxed max-w-xl">
+            Invite anyone with a Google account. They&apos;re auto-linked the
+            first time they sign in with the matching email. Until then they
+            show as &quot;Unlinked.&quot;
+          </p>
+        </div>
+        <InviteMemberDialog />
       </div>
 
       <TeamList users={users} currentUserId={user.id} />
