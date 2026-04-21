@@ -42,7 +42,11 @@ export async function listJobs(filters: JobListFilters = {}) {
     },
     include: {
       property: {
-        include: { customer: { select: { id: true, name: true } } },
+        include: {
+          customer: {
+            select: { id: true, name: true, email: true, phone: true },
+          },
+        },
       },
       assignedTech: {
         select: { id: true, name: true, initials: true, color: true },

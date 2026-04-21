@@ -2,6 +2,8 @@ import Link from "next/link";
 import { SearchX } from "lucide-react";
 import { listJobs, listTechs, type JobListItem } from "@/lib/jobs-query";
 import { JobsFilters } from "./filters";
+import { NewJobDialog } from "./new-job-dialog";
+import { getCurrentUser } from "@/lib/auth";
 import { StageBadge, RegionBadge, ProductBadge } from "@/components/badges";
 import { TechAvatar } from "@/components/tech-avatar";
 import { EmptyState } from "@/components/empty-state";
@@ -39,7 +41,7 @@ export default async function JobsPage({
   const unassigned = techIds?.includes("unassigned");
   const filteredTechIds = techIds?.filter((id) => id !== "unassigned");
 
-  const [jobs, techs] = await Promise.all([
+  const [jobs, techs, user] = await Promise.all([
     listJobs({
       q: params.q,
       stages,
@@ -48,17 +50,21 @@ export default async function JobsPage({
       unassigned,
     }),
     listTechs(),
+    getCurrentUser(),
   ]);
+
+  const canCreate = user?.role === "ADMIN" || user?.role === "OPS_MANAGER";
 
   return (
     <div className="max-w-[1400px] mx-auto px-6 py-6 animate-enter">
-      <div className="flex items-baseline justify-between mb-4">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-lg font-semibold tracking-tight">Jobs</h1>
           <p className="text-xs text-neutral-500 mt-0.5">
             {jobs.length} {jobs.length === 1 ? "job" : "jobs"}
           </p>
         </div>
+        {canCreate ? <NewJobDialog techs={techs} /> : null}
       </div>
 
       <JobsFilters techs={techs} />

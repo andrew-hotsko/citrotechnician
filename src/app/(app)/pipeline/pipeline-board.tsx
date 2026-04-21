@@ -25,6 +25,7 @@ import {
   urgencyFor,
   URGENCY_TONE,
 } from "@/lib/job-helpers";
+import { Phone, Mail } from "lucide-react";
 import { RegionBadge, ProductBadge } from "@/components/badges";
 import { TechAvatar } from "@/components/tech-avatar";
 import { updateJobStage } from "@/app/actions/jobs";
@@ -222,10 +223,76 @@ function JobCard({
             {formatDueIn(job.dueDate)}
           </span>
         </div>
-        <div className="flex items-center justify-end mt-1.5">
+        <div className="flex items-center justify-between mt-1.5 gap-1">
+          <ContactQuickActions
+            phone={job.property.customer.phone}
+            email={job.property.customer.email}
+          />
           <TechAvatar tech={job.assignedTech} size="sm" />
         </div>
       </Link>
     </div>
   );
+}
+
+/**
+ * Inline phone + email affordances on a job card. Click-to-call (tel:) on
+ * mobile and click-to-email (mailto:) everywhere — without forcing the ops
+ * manager to drill into the job detail first. Muted and compact so the
+ * card stays scannable.
+ */
+function ContactQuickActions({
+  phone,
+  email,
+}: {
+  phone: string | null;
+  email: string | null;
+}) {
+  if (!phone && !email) {
+    return <span className="text-[10px] text-neutral-400">—</span>;
+  }
+  return (
+    <div className="flex items-center gap-1">
+      {phone ? (
+        <a
+          href={`tel:${phone.replace(/[^+\d]/g, "")}`}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 h-5 px-1.5 rounded border border-neutral-200 bg-white text-[10px] font-medium text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 transition-colors"
+          title={phone}
+          aria-label={`Call ${phone}`}
+        >
+          <Phone className="h-2.5 w-2.5" />
+          <span className="tabular-nums">{formatPhoneShort(phone)}</span>
+        </a>
+      ) : null}
+      {email ? (
+        <a
+          href={`mailto:${email}`}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center justify-center h-5 w-5 rounded border border-neutral-200 bg-white text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 transition-colors"
+          title={email}
+          aria-label={`Email ${email}`}
+        >
+          <Mail className="h-2.5 w-2.5" />
+        </a>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Compact formatter so the card has room for the number next to the icon.
+ * Strips +1 country code, drops separators, and returns NNN-NNNN. The full
+ * original string is still shown in the tooltip for verification.
+ */
+function formatPhoneShort(raw: string): string {
+  const digits = raw.replace(/\D/g, "").replace(/^1/, ""); // drop leading "1"
+  if (digits.length === 10) {
+    // 10-digit US: XXX-XXXX (drop area code for space; full # in tooltip)
+    return `${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+  if (digits.length === 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return raw; // unknown format: show as-is
 }

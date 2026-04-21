@@ -2,6 +2,7 @@ import { listJobs, listTechs } from "@/lib/jobs-query";
 import { getCurrentUser } from "@/lib/auth";
 import { PipelineBoard } from "./pipeline-board";
 import { JobsFilters } from "../jobs/filters";
+import { NewJobDialog } from "../jobs/new-job-dialog";
 import type { JobStage, Region } from "@/generated/prisma/enums";
 
 type Search = Promise<{
@@ -45,7 +46,7 @@ export default async function PipelinePage({
 
   return (
     <div className="px-6 py-6 max-w-full">
-      <div className="flex items-baseline justify-between mb-4">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-lg font-semibold tracking-tight">Pipeline</h1>
           <p className="text-xs text-neutral-500 mt-0.5">
@@ -53,6 +54,7 @@ export default async function PipelinePage({
             {canEdit ? " · drag cards between columns to update stage" : ""}
           </p>
         </div>
+        {canEdit ? <NewJobDialog techs={techs} /> : null}
       </div>
 
       <JobsFilters techs={techs} />
