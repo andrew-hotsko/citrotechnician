@@ -20,18 +20,24 @@ export const STAGE_ORDER: JobStage[] = [
   "DEFERRED",
 ];
 
-/** Tailwind utility classes for each stage. */
+/**
+ * Tailwind utility classes for each stage. The `chip` variant is the
+ * Housecall/Pipedrive-style filled status pill used on tables and cards —
+ * bolder than the previous pastel so the stage reads at a glance. `dot` is
+ * the small swatch used next to the chip or on column headers. `ring` is
+ * for selection / focus states (kept for consumers).
+ */
 export const STAGE_TONE: Record<
   JobStage,
   { dot: string; chip: string; ring: string }
 > = {
-  UPCOMING:    { dot: "bg-neutral-400",   chip: "bg-neutral-100 text-neutral-700",  ring: "ring-neutral-200" },
-  OUTREACH:    { dot: "bg-amber-500",     chip: "bg-amber-50 text-amber-700",       ring: "ring-amber-200" },
-  CONFIRMED:   { dot: "bg-emerald-500",   chip: "bg-emerald-50 text-emerald-700",   ring: "ring-emerald-200" },
-  SCHEDULED:   { dot: "bg-blue-500",      chip: "bg-blue-50 text-blue-700",         ring: "ring-blue-200" },
-  IN_PROGRESS: { dot: "bg-violet-500",    chip: "bg-violet-50 text-violet-700",     ring: "ring-violet-200" },
-  COMPLETED:   { dot: "bg-emerald-600",   chip: "bg-neutral-100 text-neutral-600",  ring: "ring-neutral-200" },
-  DEFERRED:    { dot: "bg-red-500",       chip: "bg-red-50 text-red-700",           ring: "ring-red-200" },
+  UPCOMING:    { dot: "bg-neutral-400", chip: "bg-neutral-100 text-neutral-800 ring-1 ring-inset ring-neutral-200/60", ring: "ring-neutral-200" },
+  OUTREACH:    { dot: "bg-amber-500",   chip: "bg-amber-100 text-amber-900 ring-1 ring-inset ring-amber-200/60",       ring: "ring-amber-200" },
+  CONFIRMED:   { dot: "bg-emerald-500", chip: "bg-emerald-100 text-emerald-900 ring-1 ring-inset ring-emerald-200/60", ring: "ring-emerald-200" },
+  SCHEDULED:   { dot: "bg-blue-500",    chip: "bg-blue-100 text-blue-900 ring-1 ring-inset ring-blue-200/60",          ring: "ring-blue-200" },
+  IN_PROGRESS: { dot: "bg-violet-500",  chip: "bg-violet-100 text-violet-900 ring-1 ring-inset ring-violet-200/60",    ring: "ring-violet-200" },
+  COMPLETED:   { dot: "bg-emerald-600", chip: "bg-neutral-900 text-white",                                              ring: "ring-neutral-300" },
+  DEFERRED:    { dot: "bg-red-500",     chip: "bg-red-100 text-red-900 ring-1 ring-inset ring-red-200/60",             ring: "ring-red-200" },
 };
 
 export const REGION_LABEL: Record<Region, string> = {

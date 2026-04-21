@@ -18,7 +18,7 @@ export function StageBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
+        "inline-flex items-center gap-1.5 rounded-full px-2 h-[22px] text-[11px] font-semibold tracking-tight",
         tone.chip,
         className,
       )}

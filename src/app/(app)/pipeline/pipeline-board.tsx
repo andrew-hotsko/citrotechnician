@@ -180,12 +180,21 @@ function JobCard({
 
   const urgency = urgencyFor(job.dueDate);
 
+  // Tech-color left stripe: at-a-glance "whose job is this" without
+  // parsing the avatar. Muted neutral if unassigned so the row stays
+  // visually quiet until someone owns it.
+  const stripeColor = job.assignedTech?.color ?? "oklch(0.88 0 0)";
+
   return (
     <div
       ref={setNodeRef}
       {...(canEdit && !dragging ? { ...listeners, ...attributes } : {})}
+      style={{
+        borderLeftColor: stripeColor,
+        borderLeftWidth: job.assignedTech?.color ? "3px" : "2px",
+      }}
       className={cn(
-        "group block rounded-lg border border-neutral-200 bg-white p-2.5 transition-shadow duration-150 ease-standard hover:shadow-elev-1",
+        "group block rounded-lg border border-neutral-200 bg-white p-2.5 pl-3 transition-shadow duration-150 ease-standard hover:shadow-elev-1",
         canEdit && !dragging && "cursor-grab active:cursor-grabbing",
         isDragging && "opacity-40",
         dragging && "shadow-elev-3 rotate-1 cursor-grabbing",
