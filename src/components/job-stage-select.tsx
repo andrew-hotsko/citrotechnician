@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { ChevronDown } from "lucide-react";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,9 +31,10 @@ export function JobStageSelect({
     start(async () => {
       try {
         await updateJobStage(jobId, next);
+        toast.success(`Stage: ${STAGE_LABEL[current]} \u2192 ${STAGE_LABEL[next]}`);
       } catch (err) {
         console.error(err);
-        alert(err instanceof Error ? err.message : "Failed to update stage");
+        toast.error(err instanceof Error ? err.message : "Failed to update stage");
       }
     });
   }

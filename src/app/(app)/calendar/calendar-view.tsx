@@ -27,6 +27,7 @@ import {
   parseISO,
   startOfDay,
 } from "date-fns";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
   STAGE_TONE,
@@ -157,9 +158,10 @@ export function CalendarView({
         date: dateISO,
         techId: techId || null,
       });
+      toast.success(`Scheduled ${job.propertyName}`);
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : "Failed to schedule");
+      toast.error(err instanceof Error ? err.message : "Failed to schedule");
       setOptimistic((prev) => {
         const next = { ...prev };
         delete next[jobId];

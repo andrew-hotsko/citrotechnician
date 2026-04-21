@@ -13,6 +13,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { JobListItem } from "@/lib/jobs-query";
 import type { JobStage } from "@/generated/prisma/enums";
@@ -80,9 +81,10 @@ export function PipelineBoard({
     setOptimistic((p) => ({ ...p, [jobId]: newStage }));
     try {
       await updateJobStage(jobId, newStage);
+      toast.success(`Moved to ${STAGE_LABEL[newStage]}`);
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : "Failed to update stage");
+      toast.error(err instanceof Error ? err.message : "Failed to update stage");
       setOptimistic((p) => {
         const next = { ...p };
         delete next[jobId];

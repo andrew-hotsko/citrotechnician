@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <body className="min-h-full bg-[var(--color-surface)] text-neutral-900 font-sans">
         {children}
+        <Toaster position="bottom-right" richColors closeButton />
       </body>
     </html>
   );
