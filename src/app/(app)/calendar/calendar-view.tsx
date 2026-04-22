@@ -204,13 +204,39 @@ export function CalendarView({
               </p>
             </div>
             <div className="flex items-center gap-1">
+              {/* Month jump — for scheduling months out without clicking 26
+                  times. Pairs with the date picker so any week is one
+                  interaction away. */}
+              <button
+                type="button"
+                onClick={() => gotoWeek(addWeeks(weekStart, -4))}
+                className="h-8 w-8 grid place-items-center rounded-md text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                aria-label="Back 4 weeks"
+                title="Back 4 weeks"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-4 w-4 -ml-3" />
+              </button>
               <button
                 type="button"
                 onClick={() => gotoWeek(addWeeks(weekStart, -1))}
                 className="h-8 w-8 grid place-items-center rounded-md text-neutral-600 hover:bg-neutral-100"
+                aria-label="Previous week"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
+              <input
+                type="date"
+                value={format(weekStart, "yyyy-MM-dd")}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    gotoWeek(startOfDay(parseISO(e.target.value)));
+                  }
+                }}
+                className="h-8 px-2 rounded-md border border-neutral-200 text-[12px] font-medium text-neutral-700 hover:border-neutral-300 focus:outline-none focus:border-neutral-900 focus:ring-[3px] focus:ring-neutral-900/8 tabular-nums"
+                aria-label="Jump to week"
+                title="Jump to any week"
+              />
               <button
                 type="button"
                 onClick={() => gotoWeek(startOfDay(new Date()))}
@@ -222,8 +248,19 @@ export function CalendarView({
                 type="button"
                 onClick={() => gotoWeek(addWeeks(weekStart, 1))}
                 className="h-8 w-8 grid place-items-center rounded-md text-neutral-600 hover:bg-neutral-100"
+                aria-label="Next week"
               >
                 <ChevronRight className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => gotoWeek(addWeeks(weekStart, 4))}
+                className="h-8 w-8 grid place-items-center rounded-md text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                aria-label="Forward 4 weeks"
+                title="Forward 4 weeks"
+              >
+                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-4 w-4 -ml-3" />
               </button>
             </div>
           </div>

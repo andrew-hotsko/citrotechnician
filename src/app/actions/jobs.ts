@@ -378,6 +378,8 @@ export type UpdateJobDetailsInput = {
     phone?: string | null;
   };
   // Property-level changes. Address changes trigger a re-geocode.
+  // accessNotes + siteNotes feed the amber warning banner on the tech's
+  // job brief — "read before arriving" style context.
   property?: {
     name?: string;
     address?: string;
@@ -386,6 +388,8 @@ export type UpdateJobDetailsInput = {
     zip?: string | null;
     region?: Region;
     sqft?: number;
+    accessNotes?: string | null;
+    siteNotes?: string | null;
   };
   // Job-level changes. Due-date changes rebuild the T-90/60/30/overdue
   // reminder schedule for any reminder that hasn't fired yet.
@@ -516,6 +520,14 @@ export async function updateJobDetails(
               typeof propIn.sqft === "number" && propIn.sqft > 0
                 ? propIn.sqft
                 : undefined,
+            accessNotes:
+              propIn.accessNotes === null
+                ? null
+                : propIn.accessNotes?.trim() || undefined,
+            siteNotes:
+              propIn.siteNotes === null
+                ? null
+                : propIn.siteNotes?.trim() || undefined,
             ...(newCoords ?? {}),
           },
         });

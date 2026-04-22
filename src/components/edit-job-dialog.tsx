@@ -64,6 +64,10 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
   const [state, setState] = useState(job.property.state);
   const [zip, setZip] = useState(job.property.zip ?? "");
   const [region, setRegion] = useState<Region>(job.property.region);
+  const [accessNotes, setAccessNotes] = useState(
+    job.property.accessNotes ?? "",
+  );
+  const [siteNotes, setSiteNotes] = useState(job.property.siteNotes ?? "");
   // Job
   const [product, setProduct] = useState<Product>(job.product);
   const [sqft, setSqft] = useState<string>(String(job.sqftTreated));
@@ -111,6 +115,10 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
     if ((zip.trim() || null) !== (job.property.zip ?? null))
       propertyChanges.zip = zip.trim() || null;
     if (region !== job.property.region) propertyChanges.region = region;
+    if ((accessNotes.trim() || null) !== (job.property.accessNotes ?? null))
+      propertyChanges.accessNotes = accessNotes.trim() || null;
+    if ((siteNotes.trim() || null) !== (job.property.siteNotes ?? null))
+      propertyChanges.siteNotes = siteNotes.trim() || null;
 
     const jobChanges: UpdateJobDetailsInput["job"] = {};
     if (product !== job.product) jobChanges.product = product;
@@ -259,6 +267,31 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
                 </select>
               </Field>
             </div>
+
+            <Field
+              label="Access notes"
+              hint="Tech sees this as an amber 'read before arriving' warning"
+            >
+              <textarea
+                value={accessNotes}
+                onChange={(e) => setAccessNotes(e.target.value)}
+                rows={2}
+                placeholder="Gate code 1234, park by side entrance, dog on property…"
+                className={cn(inputCls, "h-auto py-2 resize-y")}
+              />
+            </Field>
+            <Field
+              label="Site notes"
+              hint="General context about the property"
+            >
+              <textarea
+                value={siteNotes}
+                onChange={(e) => setSiteNotes(e.target.value)}
+                rows={2}
+                placeholder="Steep driveway, windy afternoons, cedar roof…"
+                className={cn(inputCls, "h-auto py-2 resize-y")}
+              />
+            </Field>
           </Section>
 
           <Section label="Service">

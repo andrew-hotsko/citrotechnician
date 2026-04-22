@@ -29,7 +29,10 @@ export type ScheduledJob = Awaited<
   ReturnType<typeof listScheduledJobs>
 >[number];
 
-/** Active jobs that can be put on the calendar but aren't yet. */
+/** Active jobs that can be put on the calendar but aren't yet.
+ * Hard cap at 200 — well above any realistic count, but prevents a
+ * runaway query if the pipeline is neglected. If we ever legitimately
+ * hit this, pagination is the right next step. */
 export async function listUnscheduledJobs() {
   return prisma.job.findMany({
     where: {
@@ -46,7 +49,7 @@ export async function listUnscheduledJobs() {
       },
     },
     orderBy: [{ dueDate: "asc" }, { createdAt: "desc" }],
-    take: 50,
+    take: 200,
   });
 }
 
