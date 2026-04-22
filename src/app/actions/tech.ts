@@ -39,6 +39,8 @@ async function assertJobAccess(jobId: string) {
       type: true,
       sqftTreated: true,
       contractValue: true,
+      cycleIndex: true,
+      cyclesPlanned: true,
     },
   });
   if (!job) throw new Error("Job not found");
@@ -259,7 +261,16 @@ export async function completeJob(
   const intervalMs = job.maintenanceIntervalMonths * 30 * 24 * 60 * 60 * 1000;
   const nextDue = new Date(now.getTime() + intervalMs);
 
-  const nextJobNumber = await nextSequentialJobNumber();
+  // Maintenance-agreement terminator: cycleIndex 0 = the install,
+  // 1..cyclesPlanned = annual inspections. Once cycleIndex reaches
+  // cyclesPlanned, completing this job no longer spawns a successor —
+  // the agreement is fulfilled and the property drops out of the queue.
+  const isFinalCycle = job.cycleIndex >= job.cyclesPlanned;
+  const nextCycleIndex = job.cycleIndex + 1;
+
+  const nextJobNumber = isFinalCycle
+    ? null
+    : await nextSequentialJobNumber();
 
   await prisma.$transaction(async (tx) => {
     await tx.job.update({
@@ -272,40 +283,54 @@ export async function completeJob(
       },
     });
 
-    const child = await tx.job.create({
-      data: {
-        jobNumber: nextJobNumber,
-        propertyId: job.propertyId,
-        product: job.product,
-        type: "MAINTENANCE",
-        sqftTreated: job.sqftTreated,
-        contractValue: job.contractValue,
-        stage: "UPCOMING",
-        dueDate: nextDue,
-        maintenanceIntervalMonths: job.maintenanceIntervalMonths,
-        parentJobId: job.id,
-        // Seed checklist from product template if one exists.
-        checklistItems: {
-          create: await buildChecklistFromTemplate(tx, job.product),
+    let child: { id: string; jobNumber: string } | null = null;
+    if (!isFinalCycle && nextJobNumber) {
+      const created = await tx.job.create({
+        data: {
+          jobNumber: nextJobNumber,
+          propertyId: job.propertyId,
+          product: job.product,
+          type: "MAINTENANCE",
+          sqftTreated: job.sqftTreated,
+          contractValue: job.contractValue,
+          stage: "UPCOMING",
+          dueDate: nextDue,
+          maintenanceIntervalMonths: job.maintenanceIntervalMonths,
+          parentJobId: job.id,
+          cycleIndex: nextCycleIndex,
+          cyclesPlanned: job.cyclesPlanned,
+          // Seed checklist from product template if one exists.
+          checklistItems: {
+            create: await buildChecklistFromTemplate(tx, job.product),
+          },
         },
-      },
-    });
+      });
+      child = { id: created.id, jobNumber: created.jobNumber };
 
-    await tx.maintenanceReminder.createMany({
-      data: maintenanceReminderScheduleFor(child.id, nextDue),
-    });
+      await tx.maintenanceReminder.createMany({
+        data: maintenanceReminderScheduleFor(child.id, nextDue),
+      });
+    }
+
+    const overridePrefix = isAdminOverride
+      ? "Completed (admin override, no signature)."
+      : "Completed.";
+    const description = child
+      ? `${overridePrefix} Next service (Year ${nextCycleIndex} of ${job.cyclesPlanned}) scheduled for ${nextDue.toISOString().slice(0, 10)} — ${child.jobNumber}.`
+      : `${overridePrefix} Maintenance agreement complete (Year ${job.cycleIndex} of ${job.cyclesPlanned}). No further cycles will be scheduled.`;
 
     await tx.activityLog.create({
       data: {
         jobId: job.id,
         userId: user.id,
-        action: "job_completed",
-        description: isAdminOverride
-          ? `Completed (admin override, no signature). Next service scheduled for ${nextDue.toISOString().slice(0, 10)} (${child.jobNumber}).`
-          : `Completed. Next service scheduled for ${nextDue.toISOString().slice(0, 10)} (${child.jobNumber}).`,
+        action: child ? "job_completed" : "agreement_complete",
+        description,
         metadata: {
-          childJobId: child.id,
-          childJobNumber: child.jobNumber,
+          childJobId: child?.id ?? null,
+          childJobNumber: child?.jobNumber ?? null,
+          cycleIndex: job.cycleIndex,
+          cyclesPlanned: job.cyclesPlanned,
+          isFinalCycle,
           adminOverride: isAdminOverride,
         },
       },

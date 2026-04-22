@@ -15,7 +15,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { JobListItem } from "@/lib/jobs-query";
-import { StageBadge, RegionBadge, ProductBadge } from "@/components/badges";
+import {
+  StageBadge,
+  RegionBadge,
+  ProductBadge,
+  CycleBadge,
+} from "@/components/badges";
 import { TechAvatar } from "@/components/tech-avatar";
 import { EmptyState } from "@/components/empty-state";
 import {
@@ -141,6 +146,7 @@ export function JobsTable({
               )}
               <th className="text-left font-medium px-3 py-2 w-28">Job</th>
               <th className="text-left font-medium px-3 py-2">Property</th>
+              <th className="text-left font-medium px-3 py-2 w-28">Cycle</th>
               <th className="text-left font-medium px-3 py-2 w-32">Stage</th>
               <th className="text-left font-medium px-3 py-2 w-24">Region</th>
               <th className="text-left font-medium px-3 py-2 w-24">Product</th>
@@ -235,6 +241,14 @@ function JobRow({
             {job.property.address}, {job.property.city}
           </span>
         </Link>
+      </td>
+      <td className="px-3 py-2.5">
+        <CycleBadge
+          cycleIndex={job.cycleIndex}
+          cyclesPlanned={job.cyclesPlanned}
+          type={job.type}
+          size="sm"
+        />
       </td>
       <td className="px-3 py-2.5">
         <StageBadge stage={job.stage} />

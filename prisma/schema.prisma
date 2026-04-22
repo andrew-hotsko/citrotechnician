@@ -133,6 +133,15 @@ model Job {
   dueDate                   DateTime
   maintenanceIntervalMonths Int       @default(12)
 
+  // Maintenance-agreement position. cycleIndex 0 = the install itself.
+  // 1 = first annual inspection (Year 1), 2 = Year 2, and so on.
+  // cyclesPlanned is the total number of annuals after the install
+  // (default 2 = standard 2-year agreement). When cycleIndex reaches
+  // cyclesPlanned the chain terminates — completing that job no longer
+  // spawns a successor.
+  cycleIndex    Int @default(0)
+  cyclesPlanned Int @default(2)
+
   completedAt       DateTime?
   completedById     String?
   completedBy       User?     @relation("CompletedBy", fields: [completedById], references: [id])

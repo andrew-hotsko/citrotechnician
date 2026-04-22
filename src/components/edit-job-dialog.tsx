@@ -76,10 +76,17 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
   const [intervalMonths, setIntervalMonths] = useState<string>(
     String(job.maintenanceIntervalMonths),
   );
+  const [cyclesPlanned, setCyclesPlanned] = useState<string>(
+    String(job.cyclesPlanned),
+  );
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     const intervalNum = Number(intervalMonths) || 12;
+    const cyclesPlannedNum = Math.max(
+      job.cycleIndex, // never below current cycle position
+      Number(cyclesPlanned) || 2,
+    );
 
     // Build a diff payload — only send what changed, so the server logs
     // only the fields that actually moved.
@@ -116,6 +123,8 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
     if (dueDate !== currentDue) jobChanges.dueDate = dueDate;
     if (intervalNum !== job.maintenanceIntervalMonths)
       jobChanges.maintenanceIntervalMonths = intervalNum;
+    if (cyclesPlannedNum !== job.cyclesPlanned)
+      jobChanges.cyclesPlanned = cyclesPlannedNum;
 
     const payload: UpdateJobDetailsInput = {};
     if (Object.keys(customerChanges).length) payload.customer = customerChanges;
@@ -319,6 +328,31 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
                   onChange={(e) => setDueDate(e.target.value)}
                   className={cn(inputCls, "tabular-nums")}
                 />
+              </Field>
+            </div>
+            <div>
+              <Field
+                label="Maintenance agreement"
+                hint={`Currently on Year ${job.cycleIndex} of ${job.cyclesPlanned}`}
+              >
+                <div className="flex items-center gap-2">
+                  <input
+                    inputMode="numeric"
+                    value={cyclesPlanned}
+                    onChange={(e) => setCyclesPlanned(e.target.value)}
+                    min={job.cycleIndex}
+                    className={cn(inputCls, "tabular-nums w-20")}
+                  />
+                  <span className="text-[12px] text-neutral-600">
+                    annual inspection{Number(cyclesPlanned) === 1 ? "" : "s"} planned
+                  </span>
+                </div>
+                <p className="text-[10px] text-neutral-500 mt-1">
+                  Increase to extend the agreement (e.g. customer signs on for
+                  a 3rd year). Once a job&apos;s cycle reaches this number,
+                  completing it ends the chain — no more annuals get
+                  scheduled automatically.
+                </p>
               </Field>
             </div>
           </Section>

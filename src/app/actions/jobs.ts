@@ -159,6 +159,10 @@ export type CreateJobInput = {
   lastServiceDate?: string; // ISO yyyy-mm-dd. Omit for brand-new installs.
   intervalMonths?: number; // default 12
   assignedTechId?: string | null;
+  // Maintenance-agreement positioning. Defaults treat the new job as
+  // a fresh install with a 2-year agreement.
+  cycleIndex?: number;     // 0 = install, 1+ = annual N
+  cyclesPlanned?: number;  // total annuals after install (default 2)
 };
 
 export type CreateJobResult =
@@ -291,12 +295,23 @@ export async function createJob(input: CreateJobInput): Promise<CreateJobResult>
         include: { items: { orderBy: { order: "asc" } } },
       });
 
+      // Default this to a fresh install with a 2-year agreement unless
+      // the caller specifies otherwise (e.g. importing a property that's
+      // already mid-agreement).
+      const cycleIndex = Math.max(0, input.cycleIndex ?? 0);
+      const cyclesPlanned = Math.max(
+        cycleIndex, // can't plan fewer cycles than we're already on
+        input.cyclesPlanned ?? 2,
+      );
+
       const job = await tx.job.create({
         data: {
           jobNumber,
           propertyId: property.id,
           stage,
-          type: "MAINTENANCE",
+          // Initial install gets the explicit type; mid-agreement
+          // imports default to MAINTENANCE.
+          type: cycleIndex === 0 ? "INITIAL_APPLICATION" : "MAINTENANCE",
           product: input.product,
           sqftTreated: sqft,
           contractValue: input.contractValue,
@@ -304,6 +319,8 @@ export async function createJob(input: CreateJobInput): Promise<CreateJobResult>
           dueDate,
           maintenanceIntervalMonths: interval,
           assignedTechId: input.assignedTechId ?? undefined,
+          cycleIndex,
+          cyclesPlanned,
           checklistItems: tpl
             ? {
                 create: tpl.items.map((i) => ({
@@ -401,6 +418,7 @@ export type UpdateJobDetailsInput = {
     lastServiceDate?: string | null; // ISO date
     dueDate?: string; // ISO date
     maintenanceIntervalMonths?: number;
+    cyclesPlanned?: number; // total annuals; can be raised to extend the agreement
     scheduledDate?: string | null; // ISO datetime
   };
 };
@@ -559,6 +577,13 @@ export async function updateJobDetails(
               typeof j.maintenanceIntervalMonths === "number" &&
               j.maintenanceIntervalMonths > 0
                 ? j.maintenanceIntervalMonths
+                : undefined,
+            // cyclesPlanned can only be raised here (extending the
+            // agreement). Reducing below the current cycleIndex is
+            // clamped server-side so the chain stays consistent.
+            cyclesPlanned:
+              typeof j.cyclesPlanned === "number" && j.cyclesPlanned > 0
+                ? Math.max(current.cycleIndex, j.cyclesPlanned)
                 : undefined,
             scheduledDate:
               j.scheduledDate === null

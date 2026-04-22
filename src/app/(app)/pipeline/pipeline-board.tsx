@@ -26,7 +26,7 @@ import {
   URGENCY_TONE,
 } from "@/lib/job-helpers";
 import { Phone, Mail } from "lucide-react";
-import { RegionBadge, ProductBadge } from "@/components/badges";
+import { RegionBadge, ProductBadge, CycleBadge } from "@/components/badges";
 import { TechAvatar } from "@/components/tech-avatar";
 import { JobQuickView } from "@/components/job-quick-view";
 import { updateJobStage } from "@/app/actions/jobs";
@@ -283,7 +283,15 @@ function JobCard({
           <span className="font-mono text-[10px] font-medium text-neutral-500">
             {job.jobNumber}
           </span>
-          <RegionBadge region={job.property.region} />
+          <div className="flex items-center gap-1">
+            <CycleBadge
+              cycleIndex={job.cycleIndex}
+              cyclesPlanned={job.cyclesPlanned}
+              type={job.type}
+              size="sm"
+            />
+            <RegionBadge region={job.property.region} />
+          </div>
         </div>
         <div className="text-[13px] font-medium tracking-tight text-neutral-900 truncate">
           {job.property.name}

@@ -46,6 +46,31 @@ export const REGION_LABEL: Record<Region, string> = {
   OTHER: "Other",
 };
 
+/**
+ * Friendly label for a job's position in its maintenance agreement.
+ * cycleIndex 0 = the initial install. cycleIndex 1..cyclesPlanned = annual
+ * inspections. The terminal year carries a "(final)" tag so ops can see
+ * at a glance which jobs end the agreement.
+ */
+export function cycleLabel(
+  cycleIndex: number,
+  cyclesPlanned: number,
+  type?: "INITIAL_APPLICATION" | "MAINTENANCE" | "ONE_OFF",
+): { label: string; isFinal: boolean; isInstall: boolean } {
+  if (type === "ONE_OFF") {
+    return { label: "Repair", isFinal: false, isInstall: false };
+  }
+  if (cycleIndex === 0) {
+    return { label: "Install", isFinal: false, isInstall: true };
+  }
+  const isFinal = cycleIndex >= cyclesPlanned;
+  return {
+    label: isFinal ? `Year ${cycleIndex} (final)` : `Year ${cycleIndex}`,
+    isFinal,
+    isInstall: false,
+  };
+}
+
 export const PRODUCT_LABEL: Record<Product, string> = {
   SYSTEM: "System",
   SPRAY: "Spray",

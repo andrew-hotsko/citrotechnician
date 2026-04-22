@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { JobStageSelect } from "@/components/job-stage-select";
 import { JobTechSelect } from "@/components/job-tech-select";
 import { TechAvatar } from "@/components/tech-avatar";
-import { RegionBadge, ProductBadge } from "@/components/badges";
+import { RegionBadge, ProductBadge, CycleBadge } from "@/components/badges";
 import {
   formatDate,
   formatDueIn,
@@ -79,6 +79,12 @@ export function JobQuickView({
                   {job.jobNumber}
                 </span>
                 <span className="text-neutral-300">·</span>
+                <CycleBadge
+                  cycleIndex={job.cycleIndex}
+                  cyclesPlanned={job.cyclesPlanned}
+                  type={job.type}
+                  size="sm"
+                />
                 <RegionBadge region={job.property.region} />
                 <ProductBadge product={job.product} />
               </div>

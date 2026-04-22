@@ -11,7 +11,12 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { JobDetail } from "@/lib/job-detail-query";
-import { RegionBadge, ProductBadge, StageBadge } from "@/components/badges";
+import {
+  RegionBadge,
+  ProductBadge,
+  StageBadge,
+  CycleBadge,
+} from "@/components/badges";
 import { TechAvatar } from "@/components/tech-avatar";
 import { JobStageSelect } from "@/components/job-stage-select";
 import { JobTechSelect } from "@/components/job-tech-select";
@@ -61,11 +66,16 @@ export function JobDetailContent({
       {/* Header identity row */}
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 text-[11px]">
+          <div className="flex items-center gap-2 text-[11px] flex-wrap">
             <span className="font-mono font-medium text-neutral-500">
               {job.jobNumber}
             </span>
             <span className="text-neutral-300">·</span>
+            <CycleBadge
+              cycleIndex={job.cycleIndex}
+              cyclesPlanned={job.cyclesPlanned}
+              type={job.type}
+            />
             <RegionBadge region={job.property.region} />
             <ProductBadge product={job.product} />
           </div>
