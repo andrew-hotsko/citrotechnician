@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   DndContext,
   DragEndEvent,
@@ -210,6 +210,7 @@ function JobCard({
   dragging?: boolean;
   onQuickView?: (id: string) => void;
 }) {
+  const router = useRouter();
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: job.id,
     disabled: !canEdit || dragging,
@@ -222,38 +223,48 @@ function JobCard({
   // visually quiet until someone owns it.
   const stripeColor = job.assignedTech?.color ?? "oklch(0.88 0 0)";
 
+  function handleClick(e: React.MouseEvent) {
+    // Don't navigate when finishing a drag on the card.
+    if (isDragging || dragging) return;
+    // Cmd/Ctrl-click opens the full page in a new tab — power-user path.
+    if (e.metaKey || e.ctrlKey) {
+      window.open(`/jobs/${job.id}`, "_blank");
+      return;
+    }
+    // Default: quick-view slideover if available, full page otherwise.
+    if (onQuickView) {
+      onQuickView(job.id);
+    } else {
+      router.push(`/jobs/${job.id}`);
+    }
+  }
+
   return (
     <div
       ref={setNodeRef}
       {...(canEdit && !dragging ? { ...listeners, ...attributes } : {})}
+      onClick={handleClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleClick(e as unknown as React.MouseEvent);
+        }
+      }}
       style={{
         borderLeftColor: stripeColor,
         borderLeftWidth: job.assignedTech?.color ? "3px" : "2px",
       }}
       className={cn(
-        "group block rounded-lg border border-neutral-200 bg-white p-2.5 pl-3 transition-shadow duration-150 ease-standard hover:shadow-elev-1",
+        "group block rounded-lg border border-neutral-200 bg-white p-2.5 pl-3 transition-shadow duration-150 ease-standard hover:shadow-elev-1 outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20",
         canEdit && !dragging && "cursor-grab active:cursor-grabbing",
+        !canEdit && !dragging && "cursor-pointer",
         isDragging && "opacity-40",
         dragging && "shadow-elev-3 rotate-1 cursor-grabbing",
       )}
     >
-      <Link
-        href={`/jobs/${job.id}`}
-        onClick={(e) => {
-          // Don't navigate when finishing a drag on the card.
-          if (isDragging) {
-            e.preventDefault();
-            return;
-          }
-          // Cmd/Ctrl-click opens the full page in a new tab (browser default).
-          // Plain click opens the slideover instead for faster desk-work.
-          if (e.metaKey || e.ctrlKey || e.shiftKey || !onQuickView) return;
-          e.preventDefault();
-          onQuickView(job.id);
-        }}
-        draggable={false}
-        className="block"
-      >
+      <div>
         <div className="flex items-center justify-between gap-1 mb-1">
           <span className="font-mono text-[10px] font-medium text-neutral-500">
             {job.jobNumber}
@@ -284,7 +295,7 @@ function JobCard({
           />
           <TechAvatar tech={job.assignedTech} size="sm" />
         </div>
-      </Link>
+      </div>
     </div>
   );
 }
