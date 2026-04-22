@@ -1,12 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [params, setParams] = useState<{
+    reason: string | null;
+    email: string | null;
+    error: string | null;
+  }>({ reason: null, email: null, error: null });
+
+  // Read URL params on mount — done via window to avoid the Suspense
+  // boundary dance that useSearchParams requires.
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search);
+    setParams({
+      reason: sp.get("reason"),
+      email: sp.get("email"),
+      error: sp.get("error"),
+    });
+  }, []);
+
+  const { reason, email: deniedEmail, error: urlError } = params;
 
   async function signInWithGoogle() {
     setLoading(true);
@@ -92,6 +110,26 @@ export default function LoginPage() {
           {error && (
             <p className="mt-4 rounded-md bg-red-50 border border-red-200 px-3 py-2 text-[12px] text-red-700">
               {error}
+            </p>
+          )}
+
+          {reason === "not_invited" && (
+            <div className="mt-4 rounded-md bg-amber-50 border border-amber-200 px-3 py-2.5 text-[12px] text-amber-900">
+              <p className="font-medium">
+                {deniedEmail
+                  ? `${deniedEmail} isn't on the invite list.`
+                  : "This Google account isn't on the invite list."}
+              </p>
+              <p className="mt-1 text-amber-800">
+                Ask your admin to add you from Settings → Team, then try
+                again with the same email.
+              </p>
+            </div>
+          )}
+
+          {urlError === "auth_failed" && !reason && (
+            <p className="mt-4 rounded-md bg-red-50 border border-red-200 px-3 py-2 text-[12px] text-red-700">
+              Sign-in didn&apos;t complete. Try again.
             </p>
           )}
         </div>
