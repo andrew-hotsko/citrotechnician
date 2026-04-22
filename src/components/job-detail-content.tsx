@@ -26,6 +26,7 @@ import { EditJobDialog } from "@/components/edit-job-dialog";
 import { DeleteJobButton } from "@/components/delete-job-button";
 import { LogCommunicationDialog } from "@/components/log-communication-dialog";
 import { CompleteJobButton } from "@/components/complete-job-button";
+import { NewTaskDialog } from "@/app/(app)/tasks/new-task-dialog";
 import {
   formatCurrency,
   formatDate,
@@ -47,12 +48,16 @@ export function JobDetailContent({
   techs,
   canEdit,
   userRole,
+  currentUserId,
+  assignees,
   layout = "page",
 }: {
   job: JobDetail;
   techs: Tech[];
   canEdit: boolean;
   userRole?: string;
+  currentUserId?: string;
+  assignees?: { id: string; name: string; role: string }[];
   layout?: "page" | "slideover";
 }) {
   const urgency = urgencyFor(job.dueDate);
@@ -86,10 +91,51 @@ export function JobDetailContent({
             {job.property.address}, {job.property.city}, {job.property.state}{" "}
             {job.property.zip ?? ""}
           </p>
+          {/* Contact gauge — surfaces lastContactAt + contactAttempts so
+              ops can spot "we've tried 4 times, customer's gone dark"
+              without digging into the comms log. */}
+          {(job.contactAttempts > 0 || job.lastContactAt) && (
+            <div className="mt-2 inline-flex items-center gap-2 text-[11px]">
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-2 h-[20px] font-medium",
+                  job.contactAttempts >= 3
+                    ? "bg-red-50 text-red-700 ring-1 ring-inset ring-red-200/60"
+                    : job.contactAttempts >= 2
+                      ? "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-200/60"
+                      : "bg-neutral-100 text-neutral-700 ring-1 ring-inset ring-neutral-200/60",
+                )}
+                title={
+                  job.contactAttempts >= 3
+                    ? "Customer hasn't responded \u2014 may need to escalate"
+                    : "Outbound contact attempts since last reply"
+                }
+              >
+                <Phone className="h-3 w-3" />
+                {job.contactAttempts} {job.contactAttempts === 1 ? "attempt" : "attempts"}
+              </span>
+              {job.lastContactAt && (
+                <span className="text-neutral-500">
+                  last contact{" "}
+                  {formatDistanceToNow(new Date(job.lastContactAt), {
+                    addSuffix: true,
+                  })}
+                </span>
+              )}
+            </div>
+          )}
         </div>
         {canEdit && (
           <div className="flex items-center gap-2 shrink-0">
-            <LogCommunicationDialog jobId={job.id} />
+            <LogCommunicationDialog jobId={job.id} currentStage={job.stage} />
+            {assignees && currentUserId ? (
+              <NewTaskDialog
+                assignees={assignees}
+                currentUserId={currentUserId}
+                jobId={job.id}
+                variant="ghost"
+              />
+            ) : null}
             {/* Complete button only shows for jobs that can still be
                 completed. Upcoming jobs too far out probably shouldn't
                 be completable, but this matches the lifecycle contract
@@ -101,7 +147,7 @@ export function JobDetailContent({
                 propertyName={job.property.name}
                 hasSignature={Boolean(job.customerSignature)}
                 userRole={userRole ?? ""}
-              />
+                />
             )}
             <EditJobDialog job={job} />
             <DeleteJobButton

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { getJobDetail } from "@/lib/job-detail-query";
 import { listTechs } from "@/lib/jobs-query";
 import { JobDetailContent } from "@/components/job-detail-content";
@@ -12,10 +13,15 @@ export default async function JobDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [user, job, techs] = await Promise.all([
+  const [user, job, techs, assignees] = await Promise.all([
     getCurrentUser(),
     getJobDetail(id),
     listTechs(),
+    prisma.user.findMany({
+      where: { active: true, deletedAt: null },
+      select: { id: true, name: true, role: true },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   if (!job) notFound();
@@ -39,6 +45,8 @@ export default async function JobDetailPage({
         techs={techs}
         canEdit={canEdit}
         userRole={user?.role}
+        currentUserId={user?.id}
+        assignees={assignees}
         layout="page"
       />
     </div>

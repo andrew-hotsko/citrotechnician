@@ -8,6 +8,8 @@ import {
   Map,
   Calendar,
   ListTodo,
+  Building2,
+  Users,
   Inbox,
   Settings,
 } from "lucide-react";
@@ -27,6 +29,8 @@ const nav: NavItem[] = [
   { href: "/map", label: "Map", icon: Map },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/jobs", label: "Jobs", icon: ListTodo },
+  { href: "/properties", label: "Properties", icon: Building2 },
+  { href: "/customers", label: "Customers", icon: Users },
   { href: "/tasks", label: "Tasks", icon: Inbox },
 ];
 

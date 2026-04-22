@@ -115,6 +115,42 @@ export async function createTask(input: CreateTaskInput) {
   return { ok: true as const, taskId: created.id };
 }
 
+/**
+ * Push a task's due date forward (e.g. customer asked us to call back
+ * Friday). Stays open in the inbox but stops nagging until the new
+ * date. Days can be negative for "pull in" though that's unusual.
+ */
+export async function snoozeTask(taskId: string, days: number) {
+  const { user, task } = await assertCanEditTask(taskId);
+  if (!Number.isFinite(days)) throw new Error("days must be a number");
+
+  const base = new Date(); // snooze is "from now," not "from existing due"
+  const next = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.task.update({
+      where: { id: taskId },
+      data: { dueDate: next },
+    });
+    if (task.jobId) {
+      await tx.activityLog.create({
+        data: {
+          jobId: task.jobId,
+          userId: user.id,
+          action: "task_snoozed",
+          description: `Snoozed task "${task.title}" to ${next.toISOString().slice(0, 10)}`,
+          metadata: { taskId, days, snoozedUntil: next.toISOString() },
+        },
+      });
+    }
+  });
+
+  revalidatePath("/tasks");
+  revalidatePath("/dashboard");
+  if (task.jobId) revalidatePath(`/jobs/${task.jobId}`);
+  return { ok: true as const };
+}
+
 export async function reopenTask(taskId: string) {
   const { user, task } = await assertCanEditTask(taskId);
 

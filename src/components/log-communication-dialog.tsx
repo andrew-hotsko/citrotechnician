@@ -14,11 +14,20 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { logCommunication } from "@/app/actions/communications";
+import { STAGE_LABEL } from "@/lib/job-helpers";
 import type {
   CommunicationChannel,
   CommunicationDirection,
+  JobStage,
 } from "@/generated/prisma/enums";
 import { cn } from "@/lib/utils";
+
+const INLINE_STAGES: JobStage[] = [
+  "OUTREACH",
+  "CONFIRMED",
+  "SCHEDULED",
+  "IN_PROGRESS",
+];
 
 const CHANNELS: { value: CommunicationChannel; label: string }[] = [
   { value: "PHONE", label: "Call" },
@@ -33,7 +42,13 @@ const DIRECTIONS: { value: CommunicationDirection; label: string }[] = [
   { value: "INBOUND", label: "Inbound (they reached us)" },
 ];
 
-export function LogCommunicationDialog({ jobId }: { jobId: string }) {
+export function LogCommunicationDialog({
+  jobId,
+  currentStage,
+}: {
+  jobId: string;
+  currentStage?: JobStage;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
@@ -41,11 +56,13 @@ export function LogCommunicationDialog({ jobId }: { jobId: string }) {
   const [direction, setDirection] =
     useState<CommunicationDirection>("OUTBOUND");
   const [summary, setSummary] = useState("");
+  const [advanceTo, setAdvanceTo] = useState<JobStage | "">("");
 
   function reset() {
     setChannel("PHONE");
     setDirection("OUTBOUND");
     setSummary("");
+    setAdvanceTo("");
   }
 
   function submit(e: React.FormEvent) {
@@ -61,8 +78,13 @@ export function LogCommunicationDialog({ jobId }: { jobId: string }) {
           channel,
           direction,
           summary: summary.trim(),
+          alsoAdvanceTo: advanceTo || undefined,
         });
-        toast.success("Communication logged");
+        toast.success(
+          advanceTo
+            ? `Logged \u00b7 stage \u2192 ${STAGE_LABEL[advanceTo]}`
+            : "Communication logged",
+        );
         reset();
         setOpen(false);
         router.refresh();
@@ -160,6 +182,52 @@ export function LogCommunicationDialog({ jobId }: { jobId: string }) {
               className="block w-full px-3 py-2 text-[13px] border border-neutral-200 bg-white rounded-md placeholder:text-neutral-400 transition-all focus:outline-none focus:border-neutral-900 focus:ring-[3px] focus:ring-neutral-900/8 resize-y"
             />
           </label>
+
+          {/* Inline stage update — saves a click on every productive call. */}
+          <div className="space-y-1.5">
+            <div className="flex items-baseline justify-between">
+              <span className="text-[11px] font-medium text-neutral-700">
+                After this, also move to
+              </span>
+              <span className="text-[10px] text-neutral-400">Optional</span>
+            </div>
+            <div className="grid grid-cols-5 gap-1.5">
+              <button
+                type="button"
+                onClick={() => setAdvanceTo("")}
+                className={cn(
+                  "h-7 rounded-md border text-[11px] font-medium transition-all",
+                  advanceTo === ""
+                    ? "border-neutral-900 bg-neutral-900 text-white"
+                    : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300",
+                )}
+              >
+                Don&apos;t change
+              </button>
+              {INLINE_STAGES.map((s) => {
+                const selected = advanceTo === s;
+                const isCurrent = currentStage === s;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    disabled={isCurrent}
+                    onClick={() => setAdvanceTo(s)}
+                    title={isCurrent ? "Already on this stage" : undefined}
+                    className={cn(
+                      "h-7 rounded-md border text-[11px] font-medium transition-all",
+                      selected
+                        ? "border-neutral-900 bg-neutral-900 text-white"
+                        : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300",
+                      isCurrent && "opacity-40 cursor-not-allowed",
+                    )}
+                  >
+                    {STAGE_LABEL[s]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           <DialogFooter className="pt-2">
             <button

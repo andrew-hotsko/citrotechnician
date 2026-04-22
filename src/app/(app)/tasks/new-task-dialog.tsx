@@ -28,9 +28,22 @@ const inputCls =
 export function NewTaskDialog({
   assignees,
   currentUserId,
+  jobId,
+  variant = "primary",
 }: {
   assignees: AssignableUser[];
   currentUserId: string;
+  /**
+   * Optional — if rendering this from a job detail page, pass the
+   * job's id so the created task auto-links. Hides any job-picker UI
+   * (we don't have one yet anyway, but reserved for the future).
+   */
+  jobId?: string;
+  /**
+   * "primary" = filled black button (Tasks page header).
+   * "ghost"   = white outline button (job detail header).
+   */
+  variant?: "primary" | "ghost";
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -61,6 +74,7 @@ export function NewTaskDialog({
           description: description.trim() || undefined,
           assignedToId,
           dueDate: dueDate || null,
+          jobId: jobId ?? null,
         });
         toast.success("Task created");
         reset();
@@ -79,7 +93,14 @@ export function NewTaskDialog({
         if (!pending) setOpen(v);
       }}
     >
-      <DialogTrigger className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-neutral-900 text-white text-[12px] font-medium transition-all hover:bg-neutral-800 shadow-elev-1">
+      <DialogTrigger
+        className={cn(
+          "inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-[12px] font-medium transition-all",
+          variant === "primary"
+            ? "bg-neutral-900 text-white hover:bg-neutral-800 shadow-elev-1"
+            : "border border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50",
+        )}
+      >
         <Plus className="h-3.5 w-3.5" />
         New task
       </DialogTrigger>

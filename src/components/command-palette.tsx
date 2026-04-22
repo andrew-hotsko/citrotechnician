@@ -8,6 +8,8 @@ import {
   Map,
   Calendar,
   ListTodo,
+  Building2,
+  Users,
   Inbox,
   Settings,
   Briefcase,
@@ -43,6 +45,8 @@ const NAV = [
   { href: "/map", label: "Map", icon: Map, shortcut: "G M" },
   { href: "/calendar", label: "Calendar", icon: Calendar, shortcut: "G C" },
   { href: "/jobs", label: "Jobs", icon: ListTodo, shortcut: "G J" },
+  { href: "/properties", label: "Properties", icon: Building2 },
+  { href: "/customers", label: "Customers", icon: Users },
   { href: "/tasks", label: "Tasks", icon: Inbox },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

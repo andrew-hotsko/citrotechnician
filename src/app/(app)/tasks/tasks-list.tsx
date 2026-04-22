@@ -2,12 +2,19 @@
 
 import Link from "next/link";
 import { useOptimistic, useTransition } from "react";
-import { Check, RotateCcw } from "lucide-react";
+import { Check, RotateCcw, Clock } from "lucide-react";
 import { toast } from "sonner";
-import { completeTask, reopenTask } from "@/app/actions/tasks";
+import { completeTask, reopenTask, snoozeTask } from "@/app/actions/tasks";
 import type { TaskItem } from "@/lib/tasks-query";
 import { StageBadge, RegionBadge } from "@/components/badges";
 import { urgencyFor, URGENCY_TONE, formatDueIn } from "@/lib/job-helpers";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 type Optimistic = { id: string; completed: boolean };
@@ -42,6 +49,17 @@ export function TasksList({ tasks }: { tasks: TaskItem[] }) {
         }
       } catch (err) {
         apply({ id: task.id, completed: task.completed });
+        toast.error(err instanceof Error ? err.message : "Failed");
+      }
+    });
+  }
+
+  function snooze(task: TaskItem, days: number, label: string) {
+    start(async () => {
+      try {
+        await snoozeTask(task.id, days);
+        toast.success(`Snoozed ${label}`);
+      } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed");
       }
     });
@@ -95,16 +113,49 @@ export function TasksList({ tasks }: { tasks: TaskItem[] }) {
                     )}
                   </div>
 
-                  {t.dueDate && !t.completed && (
-                    <span
-                      className={cn(
-                        "inline-flex shrink-0 items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold tabular-nums whitespace-nowrap",
-                        URGENCY_TONE[urgency],
-                      )}
-                    >
-                      {formatDueIn(t.dueDate)}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {t.dueDate && !t.completed && (
+                      <span
+                        className={cn(
+                          "inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold tabular-nums whitespace-nowrap",
+                          URGENCY_TONE[urgency],
+                        )}
+                      >
+                        {formatDueIn(t.dueDate)}
+                      </span>
+                    )}
+                    {!t.completed && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          className="opacity-0 group-hover:opacity-100 inline-flex items-center justify-center h-6 w-6 rounded-md text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 transition-all"
+                          aria-label="Snooze task"
+                          title="Snooze"
+                        >
+                          <Clock className="h-3.5 w-3.5" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-neutral-500 font-medium">
+                            Snooze until
+                          </DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => snooze(t, 1, "to tomorrow")}>
+                            Tomorrow
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => snooze(t, 3, "3 days")}>
+                            In 3 days
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => snooze(t, 7, "1 week")}>
+                            Next week
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => snooze(t, 14, "2 weeks")}>
+                            In 2 weeks
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => snooze(t, 30, "30 days")}>
+                            In 30 days
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 </div>
 
                 {t.job && (

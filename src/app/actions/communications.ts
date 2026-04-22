@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { STAGE_LABEL } from "@/lib/job-helpers";
 import type {
   CommunicationChannel,
   CommunicationDirection,
+  JobStage,
 } from "@/generated/prisma/enums";
 
 const VALID_CHANNELS: CommunicationChannel[] = [
@@ -16,6 +18,17 @@ const VALID_CHANNELS: CommunicationChannel[] = [
   "OTHER",
 ];
 const VALID_DIRECTIONS: CommunicationDirection[] = ["OUTBOUND", "INBOUND"];
+
+// Stages the user can advance to inline from the log dialog. We don't
+// allow COMPLETED (must use the completion flow) or DEFERRED (different
+// modal flow with deferral reason); reopening from COMPLETED is also
+// blocked elsewhere.
+const INLINE_STAGE_TARGETS: JobStage[] = [
+  "OUTREACH",
+  "CONFIRMED",
+  "SCHEDULED",
+  "IN_PROGRESS",
+];
 
 /**
  * Record a structured communication event for a job. Used by ops to keep a
@@ -30,6 +43,13 @@ export async function logCommunication(input: {
   channel: CommunicationChannel;
   direction: CommunicationDirection;
   summary: string;
+  /**
+   * Optional inline stage advance — saves an extra click after a
+   * productive call. Server validates the target is one of the
+   * "office-side" stages; COMPLETED and DEFERRED still go through
+   * their dedicated flows.
+   */
+  alsoAdvanceTo?: JobStage;
 }) {
   const user = await requireUser();
   if (user.role === "VIEWER") {
@@ -46,12 +66,20 @@ export async function logCommunication(input: {
   if (!summary) {
     throw new Error("Summary is required");
   }
+  if (input.alsoAdvanceTo && !INLINE_STAGE_TARGETS.includes(input.alsoAdvanceTo)) {
+    throw new Error(
+      `Stage ${input.alsoAdvanceTo} can't be set inline — use the dedicated flow.`,
+    );
+  }
 
   const job = await prisma.job.findFirst({
     where: { id: input.jobId, deletedAt: null },
-    select: { id: true },
+    select: { id: true, stage: true },
   });
   if (!job) throw new Error("Job not found");
+  if (job.stage === "COMPLETED" && input.alsoAdvanceTo) {
+    throw new Error("Completed jobs are locked.");
+  }
 
   const channelLabel: Record<CommunicationChannel, string> = {
     PHONE: "Call",
@@ -65,8 +93,16 @@ export async function logCommunication(input: {
     INBOUND: "in",
   };
 
-  await prisma.$transaction([
-    prisma.communicationLog.create({
+  // Outbound = we reached out; inbound = customer reached us. Either
+  // way the customer engaged, so it counts as a contact for the
+  // "have we tried to reach them lately?" gauge surfaced on the job.
+  const isOutbound = input.direction === "OUTBOUND";
+
+  const stageChanged =
+    input.alsoAdvanceTo && input.alsoAdvanceTo !== job.stage;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.communicationLog.create({
       data: {
         jobId: input.jobId,
         userId: user.id,
@@ -74,21 +110,51 @@ export async function logCommunication(input: {
         direction: input.direction,
         summary,
       },
-    }),
-    prisma.activityLog.create({
+    });
+
+    // Inbound usually means we got a response — reset the chase counter.
+    // Outbound increments. Either way we update lastContactAt.
+    await tx.job.update({
+      where: { id: input.jobId },
+      data: {
+        lastContactAt: new Date(),
+        contactAttempts: isOutbound ? { increment: 1 } : 0,
+        ...(stageChanged ? { stage: input.alsoAdvanceTo } : {}),
+      },
+    });
+
+    await tx.activityLog.create({
       data: {
         jobId: input.jobId,
         userId: user.id,
         action: "communication_logged",
         description: `${channelLabel[input.channel]} (${directionLabel[input.direction]}): ${
-          summary.length > 60 ? summary.slice(0, 60) + "…" : summary
+          summary.length > 60 ? summary.slice(0, 60) + "\u2026" : summary
         }`,
         metadata: { channel: input.channel, direction: input.direction },
       },
-    }),
-  ]);
+    });
+
+    if (stageChanged) {
+      await tx.activityLog.create({
+        data: {
+          jobId: input.jobId,
+          userId: user.id,
+          action: "stage_changed",
+          description: `Stage: ${STAGE_LABEL[job.stage]} \u2192 ${STAGE_LABEL[input.alsoAdvanceTo!]} (via comms log)`,
+          metadata: {
+            from: job.stage,
+            to: input.alsoAdvanceTo,
+            triggeredBy: "communication_logged",
+          },
+        },
+      });
+    }
+  });
 
   revalidatePath(`/jobs/${input.jobId}`);
+  revalidatePath("/pipeline");
+  revalidatePath("/jobs");
   revalidatePath("/dashboard");
   return { ok: true as const };
 }
