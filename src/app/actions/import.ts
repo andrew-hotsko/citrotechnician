@@ -197,18 +197,30 @@ export async function commitImport(
 
         const jobNumber = await nextJobNumber(tx);
 
+        // Cycle defaults match the manual New Job dialog: install (0)
+        // with a 2-year agreement, unless the CSV explicitly says
+        // otherwise. Clamp planned >= index so chains stay consistent.
+        const csvCycleIndex = Math.max(0, v.cycleIndex ?? 0);
+        const csvCyclesPlanned = Math.max(
+          csvCycleIndex,
+          v.cyclesPlanned ?? 2,
+        );
+
         const job = await tx.job.create({
           data: {
             jobNumber,
             propertyId: property.id,
             stage: dueDate < new Date() ? "OUTREACH" : "UPCOMING",
-            type: "MAINTENANCE",
+            // cycle 0 with no prior service = brand-new install
+            type: csvCycleIndex === 0 ? "INITIAL_APPLICATION" : "MAINTENANCE",
             product: v.product!,
             sqftTreated: v.sqft!,
             contractValue: v.contractValue,
             lastServiceDate: v.lastServiceDate,
             dueDate,
             maintenanceIntervalMonths: interval,
+            cycleIndex: csvCycleIndex,
+            cyclesPlanned: csvCyclesPlanned,
             checklistItems: tpl
               ? {
                   create: tpl.items.map((i) => ({

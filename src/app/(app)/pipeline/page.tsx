@@ -1,4 +1,4 @@
-import { listJobs, listTechs } from "@/lib/jobs-query";
+import { listJobs, listTechs, type CycleFilter } from "@/lib/jobs-query";
 import { getCurrentUser } from "@/lib/auth";
 import { PipelineBoard } from "./pipeline-board";
 import { JobsFilters } from "../jobs/filters";
@@ -10,6 +10,7 @@ type Search = Promise<{
   stage?: string;
   region?: string;
   tech?: string;
+  cycle?: string;
 }>;
 
 function parseList<T extends string>(raw: string | undefined): T[] | undefined {
@@ -26,6 +27,7 @@ export default async function PipelinePage({
   const stages = parseList<JobStage>(params.stage);
   const regions = parseList<Region>(params.region);
   const techIds = parseList(params.tech);
+  const cycles = parseList<CycleFilter>(params.cycle);
   const unassigned = techIds?.includes("unassigned");
   const filteredTechIds = techIds?.filter((id) => id !== "unassigned");
 
@@ -37,6 +39,7 @@ export default async function PipelinePage({
       regions,
       techIds: filteredTechIds?.length ? filteredTechIds : undefined,
       unassigned,
+      cycles,
     }),
     listTechs(),
   ]);

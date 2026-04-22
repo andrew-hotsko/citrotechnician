@@ -586,14 +586,26 @@ function DropZone({
             .join(", ")}
           .
         </span>
-        <a
-          href="/api/import/template"
-          download="citrotech-import-template.csv"
-          className="inline-flex items-center gap-1 font-medium text-neutral-700 hover:text-neutral-900"
-        >
-          <Download className="h-3 w-3" />
-          Download template
-        </a>
+        <div className="flex items-center gap-3">
+          <a
+            href="/api/jobs/export"
+            download
+            className="inline-flex items-center gap-1 font-medium text-neutral-700 hover:text-neutral-900"
+            title="Download every active job as CSV — useful as a backup or for spreadsheet work."
+          >
+            <Download className="h-3 w-3" />
+            Export all jobs (backup)
+          </a>
+          <span className="h-3 w-px bg-neutral-200" />
+          <a
+            href="/api/import/template"
+            download="citrotech-import-template.csv"
+            className="inline-flex items-center gap-1 font-medium text-neutral-700 hover:text-neutral-900"
+          >
+            <Download className="h-3 w-3" />
+            Download template
+          </a>
+        </div>
       </div>
     </div>
   );

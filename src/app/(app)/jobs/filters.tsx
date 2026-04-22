@@ -44,9 +44,10 @@ export function JobsFilters({ techs }: { techs: Tech[] }) {
   const stageList = (params.get("stage") ?? "").split(",").filter(Boolean) as JobStage[];
   const regionList = (params.get("region") ?? "").split(",").filter(Boolean) as Region[];
   const techList = (params.get("tech") ?? "").split(",").filter(Boolean);
+  const cycleList = (params.get("cycle") ?? "").split(",").filter(Boolean);
 
   function toggle(
-    key: "stage" | "region" | "tech",
+    key: "stage" | "region" | "tech" | "cycle",
     value: string,
     current: string[],
   ) {
@@ -65,7 +66,11 @@ export function JobsFilters({ techs }: { techs: Tech[] }) {
   }
 
   const activeCount =
-    stageList.length + regionList.length + techList.length + (query ? 1 : 0);
+    stageList.length +
+    regionList.length +
+    techList.length +
+    cycleList.length +
+    (query ? 1 : 0);
 
   return (
     <div
@@ -98,6 +103,39 @@ export function JobsFilters({ techs }: { techs: Tech[] }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
+        <FilterGroup label="Cycle">
+          <FilterPill
+            active={cycleList.includes("install")}
+            onClick={() => toggle("cycle", "install", cycleList)}
+          >
+            Install
+          </FilterPill>
+          <FilterPill
+            active={cycleList.includes("year1")}
+            onClick={() => toggle("cycle", "year1", cycleList)}
+          >
+            Year 1
+          </FilterPill>
+          <FilterPill
+            active={cycleList.includes("year2")}
+            onClick={() => toggle("cycle", "year2", cycleList)}
+          >
+            Year 2
+          </FilterPill>
+          <FilterPill
+            active={cycleList.includes("year3plus")}
+            onClick={() => toggle("cycle", "year3plus", cycleList)}
+          >
+            Year 3+
+          </FilterPill>
+          <FilterPill
+            active={cycleList.includes("final")}
+            onClick={() => toggle("cycle", "final", cycleList)}
+          >
+            Final
+          </FilterPill>
+        </FilterGroup>
+        <span className="h-4 w-px bg-neutral-200 mx-1" />
         <FilterGroup label="Stage">
           {STAGE_ORDER.map((s) => (
             <FilterPill

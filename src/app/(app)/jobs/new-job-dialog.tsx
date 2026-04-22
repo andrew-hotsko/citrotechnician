@@ -54,6 +54,11 @@ export function NewJobDialog({ techs }: { techs: Tech[] }) {
   const [lastServiceDate, setLastServiceDate] = useState<string>("");
   const [intervalMonths, setIntervalMonths] = useState<string>("12");
   const [assignedTechId, setAssignedTechId] = useState<string>("");
+  // Maintenance-agreement positioning. Default to "Install" (cycleIndex
+  // 0). When importing a property mid-agreement (e.g. they're already
+  // on Year 1), pick the right cycle so the chain terminates correctly.
+  const [cycleIndex, setCycleIndex] = useState<number>(0);
+  const [cyclesPlanned, setCyclesPlanned] = useState<string>("2");
 
   function reset() {
     setCustomerName("");
@@ -69,11 +74,17 @@ export function NewJobDialog({ techs }: { techs: Tech[] }) {
     setLastServiceDate("");
     setIntervalMonths("12");
     setAssignedTechId("");
+    setCycleIndex(0);
+    setCyclesPlanned("2");
   }
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     const intervalNum = intervalMonths.trim() ? Number(intervalMonths) : 12;
+    const cyclesPlannedNum = Math.max(
+      cycleIndex,
+      Number(cyclesPlanned) || 2,
+    );
 
     const payload: CreateJobInput = {
       customerName: customerName.trim(),
@@ -89,6 +100,8 @@ export function NewJobDialog({ techs }: { techs: Tech[] }) {
       lastServiceDate: lastServiceDate || undefined,
       intervalMonths: intervalNum,
       assignedTechId: assignedTechId || undefined,
+      cycleIndex,
+      cyclesPlanned: cyclesPlannedNum,
     };
 
     start(async () => {
@@ -240,7 +253,7 @@ export function NewJobDialog({ techs }: { techs: Tech[] }) {
               </Field>
               <Field
                 label="Last service"
-                hint="Leave blank for new install"
+                hint={cycleIndex === 0 ? "Leave blank for new install" : "Most recent prior visit"}
               >
                 <input
                   type="date"
@@ -250,7 +263,73 @@ export function NewJobDialog({ techs }: { techs: Tech[] }) {
                 />
               </Field>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+
+            {/* Cycle position — pick what THIS job is. Default = Install
+                for brand-new sales; pick Year N when entering a property
+                that's already mid-agreement. */}
+            <Field
+              label="Cycle position"
+              hint="What's this job?"
+            >
+              <div className="grid grid-cols-4 gap-1.5">
+                {[
+                  { idx: 0, label: "Install", sub: "New job" },
+                  { idx: 1, label: "Year 1", sub: "1st annual" },
+                  { idx: 2, label: "Year 2", sub: "2nd annual" },
+                  { idx: 3, label: "Year 3+", sub: "Extended" },
+                ].map((opt) => {
+                  const selected = cycleIndex === opt.idx;
+                  return (
+                    <button
+                      key={opt.idx}
+                      type="button"
+                      onClick={() => {
+                        setCycleIndex(opt.idx);
+                        // If they pick a year >= cyclesPlanned, bump
+                        // cyclesPlanned to match (no point in having
+                        // an already-final job by default).
+                        const planned = Number(cyclesPlanned) || 2;
+                        if (opt.idx > planned) {
+                          setCyclesPlanned(String(opt.idx + 1));
+                        }
+                      }}
+                      className={cn(
+                        "flex flex-col items-start gap-0.5 rounded-md border px-2.5 py-1.5 text-left transition-all",
+                        selected
+                          ? "border-neutral-900 bg-neutral-900 text-white shadow-elev-1"
+                          : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300",
+                      )}
+                    >
+                      <span className="text-[12px] font-semibold tracking-tight">
+                        {opt.label}
+                      </span>
+                      <span
+                        className={cn(
+                          "text-[10px] leading-snug",
+                          selected ? "text-white/70" : "text-neutral-500",
+                        )}
+                      >
+                        {opt.sub}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+
+            <div className="grid grid-cols-3 gap-3">
+              <Field
+                label="Total cycles"
+                hint="Annual inspections planned"
+              >
+                <input
+                  inputMode="numeric"
+                  value={cyclesPlanned}
+                  onChange={(e) => setCyclesPlanned(e.target.value)}
+                  placeholder="2"
+                  className={cn(inputCls, "tabular-nums")}
+                />
+              </Field>
               <Field label="Interval (months)">
                 <input
                   inputMode="numeric"

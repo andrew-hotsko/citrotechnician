@@ -17,7 +17,9 @@ export type ImportField =
   | "intervalMonths"
   | "customerEmail"
   | "customerPhone"
-  | "region";
+  | "region"
+  | "cycleIndex"
+  | "cyclesPlanned";
 
 export const FIELD_META: Record<
   ImportField,
@@ -37,6 +39,8 @@ export const FIELD_META: Record<
   customerEmail:    { label: "Customer email", required: false },
   customerPhone:    { label: "Customer phone", required: false },
   region:           { label: "Region", required: false, hint: "NORCAL / SOCAL / OTHER; inferred from state if blank" },
+  cycleIndex:       { label: "Cycle index", required: false, hint: "0 = install, 1 = year 1, 2 = year 2 (default 0)" },
+  cyclesPlanned:    { label: "Cycles planned", required: false, hint: "total annuals after install (default 2)" },
 };
 
 export const FIELD_ORDER: ImportField[] = [
@@ -54,6 +58,8 @@ export const FIELD_ORDER: ImportField[] = [
   "customerEmail",
   "customerPhone",
   "region",
+  "cycleIndex",
+  "cyclesPlanned",
 ];
 
 /** Canonicalize a CSV header for matching (lowercase, strip spaces/underscores/hyphens). */
@@ -77,6 +83,8 @@ const ALIASES: Record<ImportField, string[]> = {
   customerEmail:   ["email", "customeremail", "clientemail"],
   customerPhone:   ["phone", "customerphone", "clientphone", "tel", "telephone"],
   region:          ["region", "area", "zone"],
+  cycleIndex:      ["cycle", "cycleindex", "year", "yearnumber", "cycleposition"],
+  cyclesPlanned:   ["cyclesplanned", "totalcycles", "agreementyears", "agreementlength"],
 };
 
 /**
@@ -199,6 +207,8 @@ export type ParsedRow = {
     customerEmail: string;
     customerPhone: string;
     region: "NORCAL" | "SOCAL" | "OTHER";
+    cycleIndex: number;
+    cyclesPlanned: number;
   }>;
   errors: string[];
 };
@@ -294,6 +304,34 @@ export function parseRow(
     if (inferred) values.region = inferred;
   }
   if (!values.region) values.region = "OTHER";
+
+  // Cycle position (optional). Defaults to install (cycleIndex 0,
+  // cyclesPlanned 2). Accepts strings like "0", "1", "Install", "Year 1".
+  const cycleRaw = get("cycleIndex");
+  if (cycleRaw) {
+    const n = parseInt(cycleRaw.match(/\d+/)?.[0] ?? "", 10);
+    if (Number.isFinite(n) && n >= 0) values.cycleIndex = n;
+    else if (/install|new/i.test(cycleRaw)) values.cycleIndex = 0;
+    else errors.push(`Invalid cycle index "${cycleRaw}"`);
+  } else {
+    values.cycleIndex = 0;
+  }
+  const plannedRaw = get("cyclesPlanned");
+  if (plannedRaw) {
+    const n = parseInt(plannedRaw, 10);
+    if (Number.isFinite(n) && n > 0) values.cyclesPlanned = n;
+    else errors.push(`Invalid cycles planned "${plannedRaw}"`);
+  } else {
+    values.cyclesPlanned = 2;
+  }
+  // Clamp planned >= index so chains stay consistent.
+  if (
+    typeof values.cycleIndex === "number" &&
+    typeof values.cyclesPlanned === "number" &&
+    values.cyclesPlanned < values.cycleIndex
+  ) {
+    values.cyclesPlanned = values.cycleIndex;
+  }
 
   // Required-field check.
   for (const f of FIELD_ORDER) {
