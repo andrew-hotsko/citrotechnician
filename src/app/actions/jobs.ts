@@ -25,7 +25,14 @@ const VALID_STAGES: JobStage[] = [
 
 /**
  * Move a job to a new stage. Logs an ActivityLog entry.
- * Full completion flow (PDF, child job creation) lives in /api/jobs/[id]/complete — Phase 5.
+ *
+ * Guards the maintenance lifecycle contract:
+ *   - Setting COMPLETED is NOT allowed here — the only path to COMPLETED
+ *     is the full tech-completion flow (signature, PDF, child-job
+ *     creation, reminder schedule). Skipping that would strand the
+ *     maintenance chain.
+ *   - Reopening a COMPLETED job is NOT allowed — its child job already
+ *     exists, so flipping back would double-book the next cycle.
  */
 export async function updateJobStage(jobId: string, newStage: JobStage) {
   const user = await requireUser();
@@ -35,6 +42,11 @@ export async function updateJobStage(jobId: string, newStage: JobStage) {
   if (!VALID_STAGES.includes(newStage)) {
     throw new Error(`Invalid stage: ${newStage}`);
   }
+  if (newStage === "COMPLETED") {
+    throw new Error(
+      'To complete a job, use the "Complete job" button — it generates the service report and schedules the next cycle.',
+    );
+  }
 
   const current = await prisma.job.findUnique({
     where: { id: jobId, deletedAt: null },
@@ -42,6 +54,11 @@ export async function updateJobStage(jobId: string, newStage: JobStage) {
   });
   if (!current) throw new Error("Job not found");
   if (current.stage === newStage) return { ok: true, unchanged: true };
+  if (current.stage === "COMPLETED") {
+    throw new Error(
+      "Completed jobs are locked. The next cycle has already been scheduled — editing that is the right path.",
+    );
+  }
 
   await prisma.$transaction([
     prisma.job.update({
@@ -632,6 +649,21 @@ export async function bulkUpdateJobs(
       errors: [{ jobId: "*", error: `Invalid stage: ${changes.stage}` }],
     };
   }
+  // Mirror the updateJobStage guard: bulk must not short-circuit the
+  // completion flow by setting COMPLETED directly.
+  if (changes.stage === "COMPLETED") {
+    return {
+      ok: false,
+      updated: 0,
+      errors: [
+        {
+          jobId: "*",
+          error:
+            'Use the "Complete job" button on each job — it generates the service report and schedules the next cycle.',
+        },
+      ],
+    };
+  }
 
   const errors: { jobId: string; error: string }[] = [];
   let updated = 0;
@@ -650,6 +682,10 @@ export async function bulkUpdateJobs(
       const updates: Record<string, unknown> = {};
       const logDescriptions: string[] = [];
 
+      // Skip stage + dueDate changes on locked (COMPLETED) jobs so
+      // bulk can't silently re-open them. Reassignment is fine.
+      const isLocked = job.stage === "COMPLETED";
+
       if (
         changes.assignedTechId !== undefined &&
         changes.assignedTechId !== job.assignedTechId
@@ -662,15 +698,21 @@ export async function bulkUpdateJobs(
         );
       }
 
-      if (changes.stage && changes.stage !== job.stage) {
+      if (changes.stage && changes.stage !== job.stage && !isLocked) {
         updates.stage = changes.stage;
         logDescriptions.push(
           `bulk: stage ${STAGE_LABEL[job.stage]} → ${STAGE_LABEL[changes.stage]}`,
         );
+      } else if (changes.stage && isLocked) {
+        errors.push({
+          jobId,
+          error: "Completed job can't be re-staged via bulk",
+        });
+        continue;
       }
 
       let newDueDate: Date | null = null;
-      if (changes.pushDays) {
+      if (changes.pushDays && !isLocked) {
         newDueDate = new Date(
           job.dueDate.getTime() +
             changes.pushDays * 24 * 60 * 60 * 1000,

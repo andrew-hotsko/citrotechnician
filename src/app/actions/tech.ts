@@ -233,10 +233,23 @@ export async function captureSignature(formData: FormData) {
  *    row. If PDF fails, the job is still marked complete (we don't block
  *    the tech's flow on an external dependency).
  */
-export async function completeJob(jobId: string) {
+export async function completeJob(
+  jobId: string,
+  options?: { adminOverride?: boolean },
+) {
   const { user, job } = await assertJobAccess(jobId);
-  if (!job.customerSignature) {
-    throw new Error("Capture customer signature before completing");
+
+  // Normal flow: tech completes on-site, signature required. Admin override
+  // is for the back-office scenario where the tech forgot to sign or
+  // couldn't (customer wasn't available at end). Logged explicitly so
+  // there's a clear audit trail.
+  const isAdminOverride =
+    options?.adminOverride === true && user.role === "ADMIN";
+
+  if (!job.customerSignature && !isAdminOverride) {
+    throw new Error(
+      "Capture customer signature before completing. (Admins can override if the signature wasn't available at the visit.)",
+    );
   }
   if (job.stage === "COMPLETED") {
     throw new Error("Job already completed");
@@ -287,8 +300,14 @@ export async function completeJob(jobId: string) {
         jobId: job.id,
         userId: user.id,
         action: "job_completed",
-        description: `Completed. Next service scheduled for ${nextDue.toISOString().slice(0, 10)} (${child.jobNumber}).`,
-        metadata: { childJobId: child.id, childJobNumber: child.jobNumber },
+        description: isAdminOverride
+          ? `Completed (admin override, no signature). Next service scheduled for ${nextDue.toISOString().slice(0, 10)} (${child.jobNumber}).`
+          : `Completed. Next service scheduled for ${nextDue.toISOString().slice(0, 10)} (${child.jobNumber}).`,
+        metadata: {
+          childJobId: child.id,
+          childJobNumber: child.jobNumber,
+          adminOverride: isAdminOverride,
+        },
       },
     });
   });

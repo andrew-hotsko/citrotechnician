@@ -20,6 +20,7 @@ import { ServiceReportSection } from "@/components/service-report-section";
 import { EditJobDialog } from "@/components/edit-job-dialog";
 import { DeleteJobButton } from "@/components/delete-job-button";
 import { LogCommunicationDialog } from "@/components/log-communication-dialog";
+import { CompleteJobButton } from "@/components/complete-job-button";
 import {
   formatCurrency,
   formatDate,
@@ -40,11 +41,13 @@ export function JobDetailContent({
   job,
   techs,
   canEdit,
+  userRole,
   layout = "page",
 }: {
   job: JobDetail;
   techs: Tech[];
   canEdit: boolean;
+  userRole?: string;
   layout?: "page" | "slideover";
 }) {
   const urgency = urgencyFor(job.dueDate);
@@ -77,6 +80,19 @@ export function JobDetailContent({
         {canEdit && (
           <div className="flex items-center gap-2 shrink-0">
             <LogCommunicationDialog jobId={job.id} />
+            {/* Complete button only shows for jobs that can still be
+                completed. Upcoming jobs too far out probably shouldn't
+                be completable, but this matches the lifecycle contract
+                (OUTREACH → CONFIRMED → SCHEDULED → IN_PROGRESS → COMPLETED). */}
+            {job.stage !== "COMPLETED" && job.stage !== "DEFERRED" && (
+              <CompleteJobButton
+                jobId={job.id}
+                jobNumber={job.jobNumber}
+                propertyName={job.property.name}
+                hasSignature={Boolean(job.customerSignature)}
+                userRole={userRole ?? ""}
+              />
+            )}
             <EditJobDialog job={job} />
             <DeleteJobButton
               jobId={job.id}

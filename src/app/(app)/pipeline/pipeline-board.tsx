@@ -157,7 +157,14 @@ function Column({
   canEdit: boolean;
   onQuickView: (id: string) => void;
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id: stage, disabled: !canEdit });
+  // COMPLETED isn't droppable — the only path to COMPLETED is the full
+  // completion flow (signature + PDF + child-cycle creation). Dragging
+  // would skip all of that and strand the maintenance chain.
+  const isTerminalDrop = stage === "COMPLETED";
+  const { setNodeRef, isOver } = useDroppable({
+    id: stage,
+    disabled: !canEdit || isTerminalDrop,
+  });
   const tone = STAGE_TONE[stage];
 
   return (
@@ -182,7 +189,11 @@ function Column({
       <div className="flex flex-col gap-1.5 min-h-[120px]">
         {jobs.length === 0 ? (
           <div className="text-[11px] text-neutral-400 text-center py-6">
-            {canEdit ? "Drop here" : "—"}
+            {isTerminalDrop
+              ? "Completed jobs land here automatically"
+              : canEdit
+                ? "Drop here"
+                : "—"}
           </div>
         ) : (
           jobs.map((job) => (
@@ -211,9 +222,12 @@ function JobCard({
   onQuickView?: (id: string) => void;
 }) {
   const router = useRouter();
+  // Completed jobs can't transition out — the next cycle is already
+  // spawned. Disable drag so users aren't tempted to try.
+  const isLocked = job.stage === "COMPLETED";
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: job.id,
-    disabled: !canEdit || dragging,
+    disabled: !canEdit || dragging || isLocked,
   });
 
   const urgency = urgencyFor(job.dueDate);
@@ -258,8 +272,8 @@ function JobCard({
       }}
       className={cn(
         "group block rounded-lg border border-neutral-200 bg-white p-2.5 pl-3 transition-shadow duration-150 ease-standard hover:shadow-elev-1 outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20",
-        canEdit && !dragging && "cursor-grab active:cursor-grabbing",
-        !canEdit && !dragging && "cursor-pointer",
+        canEdit && !dragging && !isLocked && "cursor-grab active:cursor-grabbing",
+        (isLocked || (!canEdit && !dragging)) && "cursor-pointer",
         isDragging && "opacity-40",
         dragging && "shadow-elev-3 rotate-1 cursor-grabbing",
       )}

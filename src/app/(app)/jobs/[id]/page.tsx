@@ -34,7 +34,13 @@ export default async function JobDetailPage({
           All jobs
         </Link>
       </div>
-      <JobDetailContent job={job} techs={techs} canEdit={canEdit} layout="page" />
+      <JobDetailContent
+        job={job}
+        techs={techs}
+        canEdit={canEdit}
+        userRole={user?.role}
+        layout="page"
+      />
     </div>
   );
 }

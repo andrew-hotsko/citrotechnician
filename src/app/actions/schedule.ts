@@ -33,6 +33,12 @@ export async function scheduleJob(
     },
   });
   if (!job) throw new Error("Job not found");
+  if (job.stage === "COMPLETED") {
+    throw new Error("Completed jobs can't be scheduled. The next cycle is already on the board.");
+  }
+  if (job.stage === "DEFERRED") {
+    throw new Error("Deferred jobs can't be scheduled. Move them back into the pipeline first.");
+  }
 
   const nextDate = startOfDay(
     typeof params.date === "string" ? new Date(params.date) : params.date,
@@ -116,6 +122,15 @@ export async function scheduleTrip(
   });
   if (jobs.length !== jobIds.length) {
     throw new Error("One or more jobs not found");
+  }
+
+  const invalid = jobs.filter(
+    (j) => j.stage === "COMPLETED" || j.stage === "DEFERRED",
+  );
+  if (invalid.length > 0) {
+    throw new Error(
+      `${invalid.length} job(s) are completed or deferred and can't be added to a trip (${invalid.map((j) => j.jobNumber).join(", ")})`,
+    );
   }
 
   // Order by jobId in given input order so ops manager's picking order sticks.
