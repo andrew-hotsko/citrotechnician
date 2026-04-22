@@ -11,12 +11,22 @@ function startOfDay(d: Date) {
 }
 
 /**
- * Schedule a single job on a specific day, optionally reassigning the tech.
- * Advances CONFIRMED → SCHEDULED automatically; other stages keep theirs.
+ * Schedule a single job on a specific day, optionally reassigning the tech
+ * and pinning a time-of-day window. Advances CONFIRMED → SCHEDULED
+ * automatically; other stages keep theirs.
+ *
+ * `startTime` / `endTime` are local-time strings in "HH:MM" format. They're
+ * combined with `date` to set scheduledStart / scheduledEnd. Passing
+ * `null` for either clears the corresponding column.
  */
 export async function scheduleJob(
   jobId: string,
-  params: { date: Date | string; techId?: string | null },
+  params: {
+    date: Date | string;
+    techId?: string | null;
+    startTime?: string | null; // "HH:MM"
+    endTime?: string | null;   // "HH:MM"
+  },
 ) {
   const user = await requireUser();
   if (user.role === "VIEWER") throw new Error("Viewers cannot schedule");
@@ -46,14 +56,38 @@ export async function scheduleJob(
   const techChanged =
     params.techId !== undefined && params.techId !== job.assignedTechId;
 
+  // Combine the day-only date with HH:MM strings into local-time
+  // DateTimes for scheduledStart / scheduledEnd. Pass undefined to
+  // leave existing values alone; pass null to explicitly clear.
+  function combine(time: string | null | undefined): Date | null | undefined {
+    if (time === undefined) return undefined;
+    if (time === null || time === "") return null;
+    const [hh, mm] = time.split(":").map((s) => parseInt(s, 10));
+    if (!Number.isFinite(hh) || !Number.isFinite(mm)) return undefined;
+    const d = new Date(nextDate);
+    d.setHours(hh, mm, 0, 0);
+    return d;
+  }
+  const scheduledStart = combine(params.startTime);
+  const scheduledEnd = combine(params.endTime);
+
   const shouldAdvance =
     job.stage === "UPCOMING" || job.stage === "OUTREACH" || job.stage === "CONFIRMED";
+
+  const timeNote =
+    params.startTime
+      ? params.endTime
+        ? ` ${params.startTime}\u2013${params.endTime}`
+        : ` ${params.startTime}`
+      : "";
 
   await prisma.$transaction([
     prisma.job.update({
       where: { id: job.id },
       data: {
         scheduledDate: nextDate,
+        ...(scheduledStart !== undefined ? { scheduledStart } : {}),
+        ...(scheduledEnd !== undefined ? { scheduledEnd } : {}),
         stage: shouldAdvance ? "SCHEDULED" : job.stage,
         ...(params.techId !== undefined ? { assignedTechId: params.techId } : {}),
       },
@@ -64,10 +98,12 @@ export async function scheduleJob(
         userId: user.id,
         action: "scheduled",
         description: techChanged
-          ? `Scheduled for ${nextDate.toISOString().slice(0, 10)} (tech reassigned)`
-          : `Scheduled for ${nextDate.toISOString().slice(0, 10)}`,
+          ? `Scheduled for ${nextDate.toISOString().slice(0, 10)}${timeNote} (tech reassigned)`
+          : `Scheduled for ${nextDate.toISOString().slice(0, 10)}${timeNote}`,
         metadata: {
           scheduledDate: nextDate.toISOString(),
+          startTime: params.startTime ?? null,
+          endTime: params.endTime ?? null,
           techId: params.techId ?? job.assignedTechId,
         },
       },

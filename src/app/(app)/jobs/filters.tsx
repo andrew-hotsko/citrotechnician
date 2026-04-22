@@ -45,6 +45,7 @@ export function JobsFilters({ techs }: { techs: Tech[] }) {
   const regionList = (params.get("region") ?? "").split(",").filter(Boolean) as Region[];
   const techList = (params.get("tech") ?? "").split(",").filter(Boolean);
   const cycleList = (params.get("cycle") ?? "").split(",").filter(Boolean);
+  const dueRange = params.get("due") ?? "";
 
   function toggle(
     key: "stage" | "region" | "tech" | "cycle",
@@ -60,6 +61,13 @@ export function JobsFilters({ techs }: { techs: Tech[] }) {
     start(() => router.replace(`?${next.toString()}`));
   }
 
+  function setDue(value: string) {
+    const next = new URLSearchParams(params);
+    if (value && value !== dueRange) next.set("due", value);
+    else next.delete("due");
+    start(() => router.replace(`?${next.toString()}`));
+  }
+
   function clearAll() {
     setQuery("");
     start(() => router.replace("?"));
@@ -70,6 +78,7 @@ export function JobsFilters({ techs }: { techs: Tech[] }) {
     regionList.length +
     techList.length +
     cycleList.length +
+    (dueRange ? 1 : 0) +
     (query ? 1 : 0);
 
   return (
@@ -103,6 +112,51 @@ export function JobsFilters({ techs }: { techs: Tech[] }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
+        <FilterGroup label="Due">
+          <FilterPill
+            active={dueRange === "overdue"}
+            onClick={() => setDue("overdue")}
+          >
+            Overdue
+          </FilterPill>
+          <FilterPill
+            active={dueRange === "this_week"}
+            onClick={() => setDue("this_week")}
+          >
+            This week
+          </FilterPill>
+          <FilterPill
+            active={dueRange === "this_month"}
+            onClick={() => setDue("this_month")}
+          >
+            This month
+          </FilterPill>
+          <FilterPill
+            active={dueRange === "next_30"}
+            onClick={() => setDue("next_30")}
+          >
+            Next 30d
+          </FilterPill>
+          <FilterPill
+            active={dueRange === "next_90"}
+            onClick={() => setDue("next_90")}
+          >
+            Next 90d
+          </FilterPill>
+          <FilterPill
+            active={dueRange === "this_quarter"}
+            onClick={() => setDue("this_quarter")}
+          >
+            This quarter
+          </FilterPill>
+          <FilterPill
+            active={dueRange === "this_year"}
+            onClick={() => setDue("this_year")}
+          >
+            This year
+          </FilterPill>
+        </FilterGroup>
+        <span className="h-4 w-px bg-neutral-200 mx-1" />
         <FilterGroup label="Cycle">
           <FilterPill
             active={cycleList.includes("install")}

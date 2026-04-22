@@ -43,6 +43,16 @@ function toDateInput(value: Date | string | null | undefined): string {
   return d.toISOString().slice(0, 10);
 }
 
+// "HH:MM" in local time; for the <input type="time"> field.
+function toTimeInput(value: Date | string | null | undefined): string {
+  if (!value) return "";
+  const d = typeof value === "string" ? new Date(value) : value;
+  if (isNaN(d.getTime())) return "";
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
 export function EditJobDialog({ job }: { job: JobDetail }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -78,6 +88,12 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
   );
   const [cyclesPlanned, setCyclesPlanned] = useState<string>(
     String(job.cyclesPlanned),
+  );
+  const [scheduledStart, setScheduledStart] = useState<string>(
+    toTimeInput(job.scheduledStart),
+  );
+  const [scheduledEnd, setScheduledEnd] = useState<string>(
+    toTimeInput(job.scheduledEnd),
   );
 
   function submit(e: React.FormEvent) {
@@ -125,6 +141,12 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
       jobChanges.maintenanceIntervalMonths = intervalNum;
     if (cyclesPlannedNum !== job.cyclesPlanned)
       jobChanges.cyclesPlanned = cyclesPlannedNum;
+    const currentStart = toTimeInput(job.scheduledStart);
+    const currentEnd = toTimeInput(job.scheduledEnd);
+    if (scheduledStart !== currentStart)
+      jobChanges.scheduledStart = scheduledStart || null;
+    if (scheduledEnd !== currentEnd)
+      jobChanges.scheduledEnd = scheduledEnd || null;
 
     const payload: UpdateJobDetailsInput = {};
     if (Object.keys(customerChanges).length) payload.customer = customerChanges;
@@ -326,6 +348,30 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
                   required
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
+                  className={cn(inputCls, "tabular-nums")}
+                />
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Field
+                label="Start time"
+                hint="Optional"
+              >
+                <input
+                  type="time"
+                  value={scheduledStart}
+                  onChange={(e) => setScheduledStart(e.target.value)}
+                  className={cn(inputCls, "tabular-nums")}
+                />
+              </Field>
+              <Field
+                label="End time"
+                hint="Optional"
+              >
+                <input
+                  type="time"
+                  value={scheduledEnd}
+                  onChange={(e) => setScheduledEnd(e.target.value)}
                   className={cn(inputCls, "tabular-nums")}
                 />
               </Field>

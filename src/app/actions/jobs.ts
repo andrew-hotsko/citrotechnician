@@ -420,12 +420,36 @@ export type UpdateJobDetailsInput = {
     maintenanceIntervalMonths?: number;
     cyclesPlanned?: number; // total annuals; can be raised to extend the agreement
     scheduledDate?: string | null; // ISO datetime
+    scheduledStart?: string | null; // "HH:MM" — combined with scheduledDate
+    scheduledEnd?: string | null;   // "HH:MM"
   };
 };
 
 export type UpdateJobDetailsResult =
   | { ok: true }
   | { ok: false; error: string };
+
+/**
+ * Combine an "HH:MM" string with a date into a Prisma update payload
+ * for scheduledStart / scheduledEnd. Returns:
+ *   - {} (no key) when the field is undefined (don't touch)
+ *   - { [field]: null } when explicitly cleared
+ *   - { [field]: Date } when both date + time are valid
+ */
+function combineScheduledTime(
+  field: "scheduledStart" | "scheduledEnd",
+  hhmm: string | null | undefined,
+  date: Date | string | null,
+): Record<string, Date | null> | Record<string, never> {
+  if (hhmm === undefined) return {};
+  if (hhmm === null || hhmm === "") return { [field]: null };
+  if (!date) return {};
+  const [hh, mm] = hhmm.split(":").map((s) => parseInt(s, 10));
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return {};
+  const d = typeof date === "string" ? new Date(date) : new Date(date);
+  d.setHours(hh, mm, 0, 0);
+  return { [field]: d };
+}
 
 export async function updateJobDetails(
   jobId: string,
@@ -591,6 +615,19 @@ export async function updateJobDetails(
                 : j.scheduledDate
                   ? new Date(j.scheduledDate)
                   : undefined,
+            // Combine "HH:MM" with the (possibly-new) scheduledDate to
+            // build the start/end DateTimes. Pass null to clear, undefined
+            // to leave the existing value alone.
+            ...combineScheduledTime(
+              "scheduledStart",
+              j.scheduledStart,
+              j.scheduledDate ?? current.scheduledDate ?? null,
+            ),
+            ...combineScheduledTime(
+              "scheduledEnd",
+              j.scheduledEnd,
+              j.scheduledDate ?? current.scheduledDate ?? null,
+            ),
           },
         });
       }

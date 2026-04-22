@@ -224,9 +224,19 @@ export function JobDetailContent({
         <Fact
           label="Scheduled"
           value={
-            job.scheduledDate
-              ? formatDate(job.scheduledDate)
-              : "—"
+            job.scheduledDate ? (
+              <>
+                {formatDate(job.scheduledDate)}
+                {job.scheduledStart && (
+                  <span className="block text-[11px] text-neutral-500 mt-0.5 tabular-nums">
+                    {formatTime(job.scheduledStart)}
+                    {job.scheduledEnd ? ` \u2013 ${formatTime(job.scheduledEnd)}` : ""}
+                  </span>
+                )}
+              </>
+            ) : (
+              "\u2014"
+            )
           }
         />
         <Fact
@@ -508,6 +518,14 @@ export function JobDetailContent({
       </Section>
     </div>
   );
+}
+
+function formatTime(d: Date | string): string {
+  const date = typeof d === "string" ? new Date(d) : d;
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 function channelLabel(

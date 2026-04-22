@@ -10,6 +10,17 @@ export type CycleFilter =
   | "year3plus" // cycleIndex >= 3
   | "final";    // cycleIndex >= cyclesPlanned (terminal job in the chain)
 
+/** Preset date ranges for the "Due" filter. */
+export type DueRange =
+  | "overdue"
+  | "this_week"
+  | "this_month"
+  | "next_30"
+  | "next_60"
+  | "next_90"
+  | "this_quarter"
+  | "this_year";
+
 export type JobListFilters = {
   q?: string;
   stages?: JobStage[];
@@ -17,7 +28,51 @@ export type JobListFilters = {
   techIds?: string[];
   unassigned?: boolean;
   cycles?: CycleFilter[];
+  dueRange?: DueRange;
+  /** Free-form date range (overrides dueRange if both set). */
+  dueFrom?: Date;
+  dueTo?: Date;
 };
+
+function rangeFor(r: DueRange): { from?: Date; to?: Date } {
+  const now = new Date();
+  const startOfDay = new Date(now);
+  startOfDay.setHours(0, 0, 0, 0);
+  switch (r) {
+    case "overdue":
+      return { to: startOfDay };
+    case "this_week": {
+      const dow = startOfDay.getDay(); // 0 = Sun
+      const monday = new Date(startOfDay);
+      monday.setDate(startOfDay.getDate() - ((dow + 6) % 7));
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 7);
+      return { from: monday, to: sunday };
+    }
+    case "this_month": {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      return { from: start, to: end };
+    }
+    case "next_30":
+      return { from: startOfDay, to: new Date(startOfDay.getTime() + 30 * 86400000) };
+    case "next_60":
+      return { from: startOfDay, to: new Date(startOfDay.getTime() + 60 * 86400000) };
+    case "next_90":
+      return { from: startOfDay, to: new Date(startOfDay.getTime() + 90 * 86400000) };
+    case "this_quarter": {
+      const q = Math.floor(now.getMonth() / 3);
+      const start = new Date(now.getFullYear(), q * 3, 1);
+      const end = new Date(now.getFullYear(), q * 3 + 3, 1);
+      return { from: start, to: end };
+    }
+    case "this_year": {
+      const start = new Date(now.getFullYear(), 0, 1);
+      const end = new Date(now.getFullYear() + 1, 0, 1);
+      return { from: start, to: end };
+    }
+  }
+}
 
 function cycleWhereOR(cycles: CycleFilter[]): Prisma.JobWhereInput[] {
   const ors: Prisma.JobWhereInput[] = [];
@@ -31,10 +86,21 @@ function cycleWhereOR(cycles: CycleFilter[]): Prisma.JobWhereInput[] {
 }
 
 export async function listJobs(filters: JobListFilters = {}) {
-  const { q, stages, regions, techIds, unassigned, cycles } = filters;
+  const { q, stages, regions, techIds, unassigned, cycles, dueRange, dueFrom, dueTo } = filters;
 
   const cycleOR = cycles && cycles.length > 0 ? cycleWhereOR(cycles) : [];
   const includesFinal = cycles?.includes("final") ?? false;
+
+  // Resolve dueRange preset to from/to bounds (custom from/to take precedence).
+  const resolvedRange = dueRange ? rangeFor(dueRange) : {};
+  const fromDate = dueFrom ?? resolvedRange.from;
+  const toDate = dueTo ?? resolvedRange.to;
+
+  const dueDateFilter: Prisma.DateTimeFilter = {};
+  if (fromDate) dueDateFilter.gte = fromDate;
+  if (toDate) dueDateFilter.lt = toDate;
+  const dueWhere: Prisma.JobWhereInput =
+    fromDate || toDate ? { dueDate: dueDateFilter } : {};
 
   return prisma.job.findMany({
     where: {
@@ -65,9 +131,20 @@ export async function listJobs(filters: JobListFilters = {}) {
                   customer: { name: { contains: q, mode: "insensitive" } },
                 },
               },
+              {
+                property: {
+                  customer: { email: { contains: q, mode: "insensitive" } },
+                },
+              },
+              {
+                property: {
+                  customer: { phone: { contains: q, mode: "insensitive" } },
+                },
+              },
             ],
           }
         : {}),
+      ...dueWhere,
     },
     include: {
       property: {

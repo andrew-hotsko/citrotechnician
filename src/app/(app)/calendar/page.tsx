@@ -46,6 +46,8 @@ export default async function CalendarPage({
         propertyRegion: j.property.region,
         dueDate: j.dueDate.toISOString(),
         scheduledDate: j.scheduledDate!.toISOString(),
+        scheduledStart: j.scheduledStart?.toISOString() ?? null,
+        scheduledEnd: j.scheduledEnd?.toISOString() ?? null,
         assignedTechId: j.assignedTechId,
       }))}
       unscheduled={unscheduled.map((j) => ({

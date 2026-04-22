@@ -57,6 +57,8 @@ type ScheduledJob = {
   propertyRegion: Region;
   dueDate: string;
   scheduledDate: string; // ISO
+  scheduledStart: string | null; // ISO
+  scheduledEnd: string | null; // ISO
   assignedTechId: string | null;
 };
 
@@ -343,6 +345,16 @@ export function CalendarView({
   );
 }
 
+function fmtCalTime(iso: string): string {
+  const d = new Date(iso);
+  const h = d.getHours();
+  const m = d.getMinutes();
+  // Compact: "9a", "10:30a", "1p", "3:45p" — fits the calendar tile.
+  const ampm = h < 12 ? "a" : "p";
+  const hh = h % 12 === 0 ? 12 : h % 12;
+  return m === 0 ? `${hh}${ampm}` : `${hh}:${String(m).padStart(2, "0")}${ampm}`;
+}
+
 function DayHeader({ date }: { date: Date }) {
   const isToday = isSameDay(date, new Date());
   return (
@@ -483,6 +495,12 @@ function ScheduledBlock({
           <span className="text-[10px] font-mono text-current/70 truncate">
             {job.jobNumber}
           </span>
+          {job.scheduledStart && (
+            <span className="ml-auto text-[10px] tabular-nums text-current/70">
+              {fmtCalTime(job.scheduledStart)}
+              {job.scheduledEnd ? `\u2013${fmtCalTime(job.scheduledEnd)}` : ""}
+            </span>
+          )}
         </div>
         <div className="text-[11px] font-medium leading-tight mt-0.5 truncate">
           {job.propertyName}
