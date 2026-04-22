@@ -60,7 +60,7 @@ export default async function PipelinePage({
       <JobsFilters techs={techs} />
 
       <div className="mt-4">
-        <PipelineBoard jobs={jobs} canEdit={canEdit} />
+        <PipelineBoard jobs={jobs} canEdit={canEdit} techs={techs} />
       </div>
     </div>
   );

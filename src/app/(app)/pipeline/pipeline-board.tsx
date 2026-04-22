@@ -28,17 +28,28 @@ import {
 import { Phone, Mail } from "lucide-react";
 import { RegionBadge, ProductBadge } from "@/components/badges";
 import { TechAvatar } from "@/components/tech-avatar";
+import { JobQuickView } from "@/components/job-quick-view";
 import { updateJobStage } from "@/app/actions/jobs";
+
+type Tech = {
+  id: string;
+  name: string;
+  initials: string | null;
+  color: string | null;
+};
 
 export function PipelineBoard({
   jobs,
   canEdit,
+  techs,
 }: {
   jobs: JobListItem[];
   canEdit: boolean;
+  techs: Tech[];
 }) {
   const [optimistic, setOptimistic] = useState<Record<string, JobStage>>({});
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [quickViewId, setQuickViewId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -94,27 +105,44 @@ export function PipelineBoard({
     }
   }
 
+  const quickViewJob = quickViewId
+    ? effectiveJobs.find((j) => j.id === quickViewId) ?? null
+    : null;
+
   return (
-    <DndContext
-      id="pipeline-dnd"
-      sensors={sensors}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-    >
-      <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6">
-        {STAGE_ORDER.map((stage) => (
-          <Column
-            key={stage}
-            stage={stage}
-            jobs={byStage[stage]}
-            canEdit={canEdit}
-          />
-        ))}
-      </div>
-      <DragOverlay>
-        {activeJob ? <JobCard job={activeJob} dragging /> : null}
-      </DragOverlay>
-    </DndContext>
+    <>
+      <DndContext
+        id="pipeline-dnd"
+        sensors={sensors}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+      >
+        <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6">
+          {STAGE_ORDER.map((stage) => (
+            <Column
+              key={stage}
+              stage={stage}
+              jobs={byStage[stage]}
+              canEdit={canEdit}
+              onQuickView={(id) => setQuickViewId(id)}
+            />
+          ))}
+        </div>
+        <DragOverlay>
+          {activeJob ? <JobCard job={activeJob} dragging /> : null}
+        </DragOverlay>
+      </DndContext>
+
+      <JobQuickView
+        job={quickViewJob}
+        techs={techs}
+        canEdit={canEdit}
+        open={quickViewId !== null}
+        onOpenChange={(v) => {
+          if (!v) setQuickViewId(null);
+        }}
+      />
+    </>
   );
 }
 
@@ -122,10 +150,12 @@ function Column({
   stage,
   jobs,
   canEdit,
+  onQuickView,
 }: {
   stage: JobStage;
   jobs: JobListItem[];
   canEdit: boolean;
+  onQuickView: (id: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: stage, disabled: !canEdit });
   const tone = STAGE_TONE[stage];
@@ -156,7 +186,12 @@ function Column({
           </div>
         ) : (
           jobs.map((job) => (
-            <JobCard key={job.id} job={job} canEdit={canEdit} />
+            <JobCard
+              key={job.id}
+              job={job}
+              canEdit={canEdit}
+              onQuickView={onQuickView}
+            />
           ))
         )}
       </div>
@@ -168,10 +203,12 @@ function JobCard({
   job,
   canEdit = false,
   dragging = false,
+  onQuickView,
 }: {
   job: JobListItem;
   canEdit?: boolean;
   dragging?: boolean;
+  onQuickView?: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: job.id,
@@ -204,7 +241,15 @@ function JobCard({
         href={`/jobs/${job.id}`}
         onClick={(e) => {
           // Don't navigate when finishing a drag on the card.
-          if (isDragging) e.preventDefault();
+          if (isDragging) {
+            e.preventDefault();
+            return;
+          }
+          // Cmd/Ctrl-click opens the full page in a new tab (browser default).
+          // Plain click opens the slideover instead for faster desk-work.
+          if (e.metaKey || e.ctrlKey || e.shiftKey || !onQuickView) return;
+          e.preventDefault();
+          onQuickView(job.id);
         }}
         draggable={false}
         className="block"

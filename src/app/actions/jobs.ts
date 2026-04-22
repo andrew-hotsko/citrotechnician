@@ -578,6 +578,159 @@ export async function updateJobDetails(
   return { ok: true };
 }
 
+// ---------------------------------------------------------------------------
+// Bulk actions — the "tech called out, reschedule everyone" flow. One
+// transaction per row so one bad job doesn't take down the rest of the batch.
+
+export type BulkUpdateInput = {
+  assignedTechId?: string | null; // string to reassign, null to unassign, undefined = don't touch
+  stage?: JobStage;
+  pushDays?: number; // positive = push due-date forward by N days
+};
+
+export type BulkUpdateResult = {
+  ok: boolean;
+  updated: number;
+  errors: { jobId: string; error: string }[];
+};
+
+export async function bulkUpdateJobs(
+  jobIds: string[],
+  changes: BulkUpdateInput,
+): Promise<BulkUpdateResult> {
+  const user = await requireUser();
+  if (user.role !== "ADMIN" && user.role !== "OPS_MANAGER") {
+    return {
+      ok: false,
+      updated: 0,
+      errors: [{ jobId: "*", error: "Only admins and ops managers can run bulk actions" }],
+    };
+  }
+
+  if (jobIds.length === 0) {
+    return { ok: true, updated: 0, errors: [] };
+  }
+
+  // Validate tech up front (once, not per-row).
+  if (changes.assignedTechId) {
+    const tech = await prisma.user.findUnique({
+      where: { id: changes.assignedTechId },
+      select: { role: true },
+    });
+    if (!tech || (tech.role !== "TECH" && tech.role !== "ADMIN")) {
+      return {
+        ok: false,
+        updated: 0,
+        errors: [{ jobId: "*", error: "Target user is not a tech" }],
+      };
+    }
+  }
+  if (changes.stage && !VALID_STAGES.includes(changes.stage)) {
+    return {
+      ok: false,
+      updated: 0,
+      errors: [{ jobId: "*", error: `Invalid stage: ${changes.stage}` }],
+    };
+  }
+
+  const errors: { jobId: string; error: string }[] = [];
+  let updated = 0;
+
+  for (const jobId of jobIds) {
+    try {
+      const job = await prisma.job.findFirst({
+        where: { id: jobId, deletedAt: null },
+        select: { id: true, stage: true, assignedTechId: true, dueDate: true },
+      });
+      if (!job) {
+        errors.push({ jobId, error: "Not found" });
+        continue;
+      }
+
+      const updates: Record<string, unknown> = {};
+      const logDescriptions: string[] = [];
+
+      if (
+        changes.assignedTechId !== undefined &&
+        changes.assignedTechId !== job.assignedTechId
+      ) {
+        updates.assignedTechId = changes.assignedTechId;
+        logDescriptions.push(
+          changes.assignedTechId === null
+            ? "bulk: unassigned"
+            : "bulk: reassigned tech",
+        );
+      }
+
+      if (changes.stage && changes.stage !== job.stage) {
+        updates.stage = changes.stage;
+        logDescriptions.push(
+          `bulk: stage ${STAGE_LABEL[job.stage]} → ${STAGE_LABEL[changes.stage]}`,
+        );
+      }
+
+      let newDueDate: Date | null = null;
+      if (changes.pushDays) {
+        newDueDate = new Date(
+          job.dueDate.getTime() +
+            changes.pushDays * 24 * 60 * 60 * 1000,
+        );
+        updates.dueDate = newDueDate;
+        logDescriptions.push(
+          `bulk: pushed due date ${changes.pushDays > 0 ? "+" : ""}${changes.pushDays}d`,
+        );
+      }
+
+      if (Object.keys(updates).length === 0) {
+        // Nothing actually changed for this row.
+        continue;
+      }
+
+      await prisma.$transaction(async (tx) => {
+        await tx.job.update({ where: { id: jobId }, data: updates });
+
+        if (newDueDate) {
+          // Rebuild reminders for the new due date.
+          await tx.maintenanceReminder.deleteMany({
+            where: { jobId, triggered: false },
+          });
+          await tx.maintenanceReminder.createMany({
+            data: maintenanceReminderScheduleFor(jobId, newDueDate),
+          });
+        }
+
+        await tx.activityLog.create({
+          data: {
+            jobId,
+            userId: user.id,
+            action: "bulk_update",
+            description: logDescriptions.join(" · "),
+            metadata: { changes },
+          },
+        });
+      });
+      updated++;
+    } catch (err) {
+      errors.push({
+        jobId,
+        error: err instanceof Error ? err.message : "Unknown error",
+      });
+    }
+  }
+
+  revalidatePath("/jobs");
+  revalidatePath("/pipeline");
+  revalidatePath("/map");
+  revalidatePath("/calendar");
+  revalidatePath("/dashboard");
+
+  return {
+    ok: errors.length === 0,
+    updated,
+    errors,
+  };
+}
+
 /**
  * Soft-delete a job. Sets deletedAt so the row disappears from every list,
  * but stays in the DB for audit / accidental-delete recovery. The server
