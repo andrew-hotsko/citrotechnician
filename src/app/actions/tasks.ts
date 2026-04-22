@@ -45,6 +45,76 @@ export async function completeTask(taskId: string) {
   return { ok: true as const };
 }
 
+// ---------------------------------------------------------------------------
+// Ad-hoc task creation. The maintenance engine auto-creates tasks at T-90/
+// T-60/T-30/overdue, but ops often need a manual "remind me Friday about X"
+// — this fills that gap.
+
+export type CreateTaskInput = {
+  title: string;
+  description?: string;
+  assignedToId: string; // required — tasks always have an owner
+  dueDate?: string | null; // ISO date, optional
+  jobId?: string | null; // optional link to a job
+};
+
+export async function createTask(input: CreateTaskInput) {
+  const actor = await requireUser();
+  if (actor.role !== "ADMIN" && actor.role !== "OPS_MANAGER") {
+    throw new Error("Only admins and ops managers can create tasks");
+  }
+
+  const title = input.title.trim();
+  if (!title) throw new Error("Title is required");
+
+  // Validate assignee.
+  const assignee = await prisma.user.findUnique({
+    where: { id: input.assignedToId },
+    select: { id: true, active: true, deletedAt: true, name: true },
+  });
+  if (!assignee || !assignee.active || assignee.deletedAt) {
+    throw new Error("Assignee is not an active user");
+  }
+
+  // Validate linked job if provided.
+  if (input.jobId) {
+    const job = await prisma.job.findFirst({
+      where: { id: input.jobId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!job) throw new Error("Linked job not found");
+  }
+
+  const created = await prisma.$transaction(async (tx) => {
+    const task = await tx.task.create({
+      data: {
+        title,
+        description: input.description?.trim() || null,
+        assignedToId: assignee.id,
+        dueDate: input.dueDate ? new Date(input.dueDate) : null,
+        jobId: input.jobId ?? null,
+      },
+    });
+    if (input.jobId) {
+      await tx.activityLog.create({
+        data: {
+          jobId: input.jobId,
+          userId: actor.id,
+          action: "task_created",
+          description: `Created task "${title}" for ${assignee.name}`,
+          metadata: { taskId: task.id },
+        },
+      });
+    }
+    return task;
+  });
+
+  revalidatePath("/tasks");
+  revalidatePath("/dashboard");
+  if (input.jobId) revalidatePath(`/jobs/${input.jobId}`);
+  return { ok: true as const, taskId: created.id };
+}
+
 export async function reopenTask(taskId: string) {
   const { user, task } = await assertCanEditTask(taskId);
 

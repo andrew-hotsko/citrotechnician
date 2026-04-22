@@ -1,5 +1,15 @@
 import Link from "next/link";
-import { Check, Mail, Phone, Image as ImageIcon, FileText } from "lucide-react";
+import {
+  Check,
+  Mail,
+  Phone,
+  Image as ImageIcon,
+  FileText,
+  MessageSquare,
+  ArrowRight as ArrowInbound,
+  ArrowLeft as ArrowOutbound,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import type { JobDetail } from "@/lib/job-detail-query";
 import { RegionBadge, ProductBadge, StageBadge } from "@/components/badges";
 import { TechAvatar } from "@/components/tech-avatar";
@@ -9,6 +19,7 @@ import { OfficeNotesEditor } from "@/components/office-notes-editor";
 import { ServiceReportSection } from "@/components/service-report-section";
 import { EditJobDialog } from "@/components/edit-job-dialog";
 import { DeleteJobButton } from "@/components/delete-job-button";
+import { LogCommunicationDialog } from "@/components/log-communication-dialog";
 import {
   formatCurrency,
   formatDate,
@@ -65,6 +76,7 @@ export function JobDetailContent({
         </div>
         {canEdit && (
           <div className="flex items-center gap-2 shrink-0">
+            <LogCommunicationDialog jobId={job.id} />
             <EditJobDialog job={job} />
             <DeleteJobButton
               jobId={job.id}
@@ -261,6 +273,62 @@ export function JobDetailContent({
         />
       </Section>
 
+      {/* Communication history — structured log of calls, emails, visits */}
+      {job.communications.length > 0 && (
+        <Section
+          title="Communications"
+          subtitle={`${job.communications.length} logged`}
+          className="mb-6"
+        >
+          <ul className="space-y-2">
+            {job.communications.map((c) => (
+              <li
+                key={c.id}
+                className="flex items-start gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2.5"
+              >
+                <div className="shrink-0 h-7 w-7 rounded-md bg-neutral-100 grid place-items-center">
+                  {c.direction === "INBOUND" ? (
+                    <ArrowInbound className="h-3.5 w-3.5 text-emerald-600" />
+                  ) : (
+                    <ArrowOutbound className="h-3.5 w-3.5 text-blue-600" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 text-[11px] text-neutral-500">
+                    <span className="font-medium text-neutral-700">
+                      {channelLabel(c.channel)}
+                    </span>
+                    <span>·</span>
+                    <span>
+                      {c.direction === "INBOUND" ? "from customer" : "to customer"}
+                    </span>
+                    <span>·</span>
+                    <span>
+                      {formatDistanceToNow(new Date(c.createdAt), {
+                        addSuffix: true,
+                      })}
+                    </span>
+                    <span className="ml-auto inline-flex items-center gap-1">
+                      <TechAvatar
+                        tech={{
+                          name: c.user.name,
+                          initials: c.user.initials,
+                          color: c.user.color,
+                        }}
+                        size="sm"
+                      />
+                    </span>
+                  </div>
+                  <p className="text-[13px] text-neutral-800 mt-0.5 whitespace-pre-wrap">
+                    {c.summary}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
+
       {/* Photos (placeholder — Phase 5) */}
       {job.photos.length > 0 && (
         <Section
@@ -378,6 +446,23 @@ export function JobDetailContent({
       </Section>
     </div>
   );
+}
+
+function channelLabel(
+  channel: "PHONE" | "EMAIL" | "TEXT" | "IN_PERSON" | "OTHER",
+): string {
+  switch (channel) {
+    case "PHONE":
+      return "Call";
+    case "EMAIL":
+      return "Email";
+    case "TEXT":
+      return "Text";
+    case "IN_PERSON":
+      return "In-person";
+    default:
+      return "Other";
+  }
 }
 
 function Fact({
