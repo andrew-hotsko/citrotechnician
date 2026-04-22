@@ -22,9 +22,8 @@ import type { JobDetail } from "@/lib/job-detail-query";
 import { cn } from "@/lib/utils";
 
 const PRODUCTS: { value: Product; label: string }[] = [
-  { value: "MFB_31", label: "MFB-31" },
-  { value: "MFB_34", label: "MFB-34" },
-  { value: "MFB_35_FM", label: "MFB-35-FM" },
+  { value: "SYSTEM", label: "System" },
+  { value: "SPRAY", label: "Spray" },
 ];
 
 const REGIONS: { value: Region; label: string }[] = [
@@ -68,12 +67,8 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
     job.property.accessNotes ?? "",
   );
   const [siteNotes, setSiteNotes] = useState(job.property.siteNotes ?? "");
-  // Job
+  // Job (sqft + contractValue intentionally hidden from the UI now)
   const [product, setProduct] = useState<Product>(job.product);
-  const [sqft, setSqft] = useState<string>(String(job.sqftTreated));
-  const [contractValue, setContractValue] = useState<string>(
-    job.contractValue ? String(Number(job.contractValue)) : "",
-  );
   const [lastServiceDate, setLastServiceDate] = useState<string>(
     toDateInput(job.lastServiceDate),
   );
@@ -84,14 +79,6 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const sqftNum = Number(sqft.replace(/[,\s]/g, ""));
-    if (!Number.isFinite(sqftNum) || sqftNum <= 0) {
-      toast.error("Sq ft must be a positive number");
-      return;
-    }
-    const contractNum = contractValue.trim()
-      ? Number(contractValue.replace(/[$,\s]/g, ""))
-      : null;
     const intervalNum = Number(intervalMonths) || 12;
 
     // Build a diff payload — only send what changed, so the server logs
@@ -122,9 +109,6 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
 
     const jobChanges: UpdateJobDetailsInput["job"] = {};
     if (product !== job.product) jobChanges.product = product;
-    if (sqftNum !== job.sqftTreated) jobChanges.sqftTreated = sqftNum;
-    if (contractNum !== (job.contractValue ? Number(job.contractValue) : null))
-      jobChanges.contractValue = contractNum;
     const currentLastService = toDateInput(job.lastServiceDate);
     if (lastServiceDate !== currentLastService)
       jobChanges.lastServiceDate = lastServiceDate || null;
@@ -295,7 +279,7 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
           </Section>
 
           <Section label="Service">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <Field label="Product">
                 <select
                   value={product}
@@ -309,26 +293,16 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
                   ))}
                 </select>
               </Field>
-              <Field label="Sq ft">
+              <Field label="Interval (months)">
                 <input
-                  required
                   inputMode="numeric"
-                  value={sqft}
-                  onChange={(e) => setSqft(e.target.value)}
-                  className={cn(inputCls, "tabular-nums")}
-                />
-              </Field>
-              <Field label="Contract $">
-                <input
-                  inputMode="decimal"
-                  value={contractValue}
-                  onChange={(e) => setContractValue(e.target.value)}
-                  placeholder="18200"
+                  value={intervalMonths}
+                  onChange={(e) => setIntervalMonths(e.target.value)}
                   className={cn(inputCls, "tabular-nums")}
                 />
               </Field>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <Field label="Last service">
                 <input
                   type="date"
@@ -343,14 +317,6 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
                   required
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className={cn(inputCls, "tabular-nums")}
-                />
-              </Field>
-              <Field label="Interval (months)">
-                <input
-                  inputMode="numeric"
-                  value={intervalMonths}
-                  onChange={(e) => setIntervalMonths(e.target.value)}
                   className={cn(inputCls, "tabular-nums")}
                 />
               </Field>

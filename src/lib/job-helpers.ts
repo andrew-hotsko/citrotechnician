@@ -47,9 +47,14 @@ export const REGION_LABEL: Record<Region, string> = {
 };
 
 export const PRODUCT_LABEL: Record<Product, string> = {
-  MFB_31: "MFB-31",
-  MFB_34: "MFB-34",
-  MFB_35_FM: "MFB-35-FM",
+  SYSTEM: "System",
+  SPRAY: "Spray",
+  // Legacy values — shouldn't appear in the UI after the rekey migration,
+  // but map them so historic PDFs and activity-log metadata still read
+  // sanely if referenced.
+  MFB_31: "System",
+  MFB_34: "System",
+  MFB_35_FM: "Spray",
 };
 
 // ---- Formatters -----------------------------------------------------------

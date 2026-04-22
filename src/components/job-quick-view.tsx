@@ -7,8 +7,6 @@ import {
   MapPin,
   Calendar as CalendarIcon,
   Clock,
-  DollarSign,
-  Ruler,
   X,
   ArrowRight,
 } from "lucide-react";
@@ -19,7 +17,6 @@ import { JobTechSelect } from "@/components/job-tech-select";
 import { TechAvatar } from "@/components/tech-avatar";
 import { RegionBadge, ProductBadge } from "@/components/badges";
 import {
-  formatCurrency,
   formatDate,
   formatDueIn,
   urgencyFor,
@@ -192,18 +189,6 @@ export function JobQuickView({
                   icon={Clock}
                   label="Interval"
                   value={`${job.maintenanceIntervalMonths} months`}
-                />
-                <Fact
-                  icon={Ruler}
-                  label="Sq ft treated"
-                  value={job.sqftTreated.toLocaleString()}
-                />
-                <Fact
-                  icon={DollarSign}
-                  label="Contract value"
-                  value={formatCurrency(
-                    job.contractValue ? Number(job.contractValue) : null,
-                  )}
                 />
               </dl>
             </div>

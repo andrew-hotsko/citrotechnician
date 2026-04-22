@@ -27,7 +27,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  formatCurrency,
   formatDate,
   formatDueIn,
   STAGE_LABEL,
@@ -147,7 +146,6 @@ export function JobsTable({
               <th className="text-left font-medium px-3 py-2 w-24">Product</th>
               <th className="text-left font-medium px-3 py-2 w-24">Tech</th>
               <th className="text-left font-medium px-3 py-2 w-36">Due</th>
-              <th className="text-right font-medium px-3 py-2 w-28">Value</th>
             </tr>
           </thead>
           <tbody>
@@ -264,11 +262,6 @@ function JobRow({
             {formatDate(job.dueDate)}
           </span>
         </div>
-      </td>
-      <td className="px-3 py-2.5 text-right tabular-nums text-neutral-700">
-        {formatCurrency(
-          job.contractValue ? Number(job.contractValue) : null,
-        )}
       </td>
     </tr>
   );

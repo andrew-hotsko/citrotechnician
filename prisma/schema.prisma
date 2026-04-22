@@ -188,6 +188,12 @@ enum JobType {
 }
 
 enum Product {
+  SYSTEM
+  SPRAY
+  // Legacy — kept so the existing Job + ChecklistTemplate rows don't
+  // error out until the migration script (prisma/migrate-product-types.ts)
+  // has run on the target database. Remove once every row has been
+  // rekeyed to SYSTEM / SPRAY.
   MFB_31
   MFB_34
   MFB_35_FM

@@ -20,9 +20,8 @@ import { cn } from "@/lib/utils";
 type Tech = { id: string; name: string; initials: string | null; color: string | null };
 
 const PRODUCTS: { value: Product; label: string }[] = [
-  { value: "MFB_31", label: "MFB-31" },
-  { value: "MFB_34", label: "MFB-34" },
-  { value: "MFB_35_FM", label: "MFB-35-FM" },
+  { value: "SYSTEM", label: "System" },
+  { value: "SPRAY", label: "Spray" },
 ];
 
 const REGIONS: { value: Region; label: string }[] = [
@@ -51,9 +50,7 @@ export function NewJobDialog({ techs }: { techs: Tech[] }) {
   const [zip, setZip] = useState("");
   const [region, setRegion] = useState<Region | "">("");
   // Service
-  const [product, setProduct] = useState<Product>("MFB_31");
-  const [sqft, setSqft] = useState<string>("");
-  const [contractValue, setContractValue] = useState<string>("");
+  const [product, setProduct] = useState<Product>("SYSTEM");
   const [lastServiceDate, setLastServiceDate] = useState<string>("");
   const [intervalMonths, setIntervalMonths] = useState<string>("12");
   const [assignedTechId, setAssignedTechId] = useState<string>("");
@@ -68,9 +65,7 @@ export function NewJobDialog({ techs }: { techs: Tech[] }) {
     setState("CA");
     setZip("");
     setRegion("");
-    setProduct("MFB_31");
-    setSqft("");
-    setContractValue("");
+    setProduct("SYSTEM");
     setLastServiceDate("");
     setIntervalMonths("12");
     setAssignedTechId("");
@@ -78,14 +73,6 @@ export function NewJobDialog({ techs }: { techs: Tech[] }) {
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const sqftNum = Number(sqft.replace(/[,\s]/g, ""));
-    if (!Number.isFinite(sqftNum) || sqftNum <= 0) {
-      toast.error("Sq ft must be a positive number");
-      return;
-    }
-    const contractNum = contractValue.trim()
-      ? Number(contractValue.replace(/[$,\s]/g, ""))
-      : undefined;
     const intervalNum = intervalMonths.trim() ? Number(intervalMonths) : 12;
 
     const payload: CreateJobInput = {
@@ -99,8 +86,6 @@ export function NewJobDialog({ techs }: { techs: Tech[] }) {
       zip: zip.trim() || undefined,
       region: region || undefined,
       product,
-      sqft: sqftNum,
-      contractValue: Number.isFinite(contractNum) ? contractNum : undefined,
       lastServiceDate: lastServiceDate || undefined,
       intervalMonths: intervalNum,
       assignedTechId: assignedTechId || undefined,
@@ -239,7 +224,7 @@ export function NewJobDialog({ techs }: { techs: Tech[] }) {
           </Section>
 
           <Section label="Service">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <Field label="Product">
                 <select
                   value={product}
@@ -253,30 +238,9 @@ export function NewJobDialog({ techs }: { techs: Tech[] }) {
                   ))}
                 </select>
               </Field>
-              <Field label="Sq ft">
-                <input
-                  required
-                  inputMode="numeric"
-                  value={sqft}
-                  onChange={(e) => setSqft(e.target.value)}
-                  placeholder="24000"
-                  className={cn(inputCls, "tabular-nums")}
-                />
-              </Field>
-              <Field label="Contract $" hint="Optional">
-                <input
-                  inputMode="decimal"
-                  value={contractValue}
-                  onChange={(e) => setContractValue(e.target.value)}
-                  placeholder="18200"
-                  className={cn(inputCls, "tabular-nums")}
-                />
-              </Field>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
               <Field
                 label="Last service"
-                hint="Leave blank for brand-new install"
+                hint="Leave blank for new install"
               >
                 <input
                   type="date"
@@ -285,6 +249,8 @@ export function NewJobDialog({ techs }: { techs: Tech[] }) {
                   className={cn(inputCls, "tabular-nums")}
                 />
               </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
               <Field label="Interval (months)">
                 <input
                   inputMode="numeric"

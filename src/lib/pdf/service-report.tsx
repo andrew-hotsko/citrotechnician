@@ -19,7 +19,7 @@ import React from "react";
 export type ServiceReportInput = {
   jobNumber: string;
   completedAt: Date;
-  product: "MFB_31" | "MFB_34" | "MFB_35_FM";
+  product: "SYSTEM" | "SPRAY" | "MFB_31" | "MFB_34" | "MFB_35_FM";
   sqftTreated: number;
   contractValue: number | null;
   property: {
@@ -49,9 +49,12 @@ export type ServiceReportInput = {
 };
 
 const PRODUCT_LABEL: Record<ServiceReportInput["product"], string> = {
-  MFB_31: "MFB-31",
-  MFB_34: "MFB-34",
-  MFB_35_FM: "MFB-35-FM",
+  SYSTEM: "System",
+  SPRAY: "Spray",
+  // Legacy values still resolve cleanly if any historic data slips through.
+  MFB_31: "System",
+  MFB_34: "System",
+  MFB_35_FM: "Spray",
 };
 
 // -----------------------------------------------------------------------------

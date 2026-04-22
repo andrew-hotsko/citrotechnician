@@ -154,8 +154,8 @@ export type CreateJobInput = {
 
   // Job.
   product: Product;
-  sqft: number;
-  contractValue?: number;
+  sqft?: number;          // hidden in UI; DB column kept at 0 when unset.
+  contractValue?: number; // hidden in UI; retained in schema for future use.
   lastServiceDate?: string; // ISO yyyy-mm-dd. Omit for brand-new installs.
   intervalMonths?: number; // default 12
   assignedTechId?: string | null;
@@ -189,9 +189,10 @@ export async function createJob(input: CreateJobInput): Promise<CreateJobResult>
   if (!propertyName) return { ok: false, error: "Property name is required", field: "propertyName" };
   if (!address) return { ok: false, error: "Street address is required", field: "address" };
   if (!city) return { ok: false, error: "City is required", field: "city" };
-  if (!Number.isFinite(input.sqft) || input.sqft <= 0) {
-    return { ok: false, error: "Sq ft must be a positive number", field: "sqft" };
-  }
+
+  // sqft is hidden in the UI now but the column is still non-null; default
+  // to 0 when not provided. Callers can still pass it if they want.
+  const sqft = Number.isFinite(input.sqft) && input.sqft! > 0 ? input.sqft! : 0;
 
   const interval = Number.isFinite(input.intervalMonths) && input.intervalMonths!
     ? Math.max(1, Math.floor(input.intervalMonths!))
@@ -280,7 +281,7 @@ export async function createJob(input: CreateJobInput): Promise<CreateJobResult>
           latitude: geo.value.latitude,
           longitude: geo.value.longitude,
           region,
-          sqft: input.sqft,
+          sqft,
         },
       });
 
@@ -297,7 +298,7 @@ export async function createJob(input: CreateJobInput): Promise<CreateJobResult>
           stage,
           type: "MAINTENANCE",
           product: input.product,
-          sqftTreated: input.sqft,
+          sqftTreated: sqft,
           contractValue: input.contractValue,
           lastServiceDate: lastServiceDate ?? undefined,
           dueDate,

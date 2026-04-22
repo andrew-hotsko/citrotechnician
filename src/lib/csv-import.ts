@@ -29,7 +29,7 @@ export const FIELD_META: Record<
   city:             { label: "City", required: true },
   state:            { label: "State", required: false, hint: "default CA" },
   zip:              { label: "ZIP", required: false },
-  product:          { label: "Product", required: true, hint: "MFB-31 / MFB-34 / MFB-35-FM" },
+  product:          { label: "Product", required: true, hint: "System / Spray" },
   sqft:             { label: "Sq ft", required: true },
   contractValue:    { label: "Contract value", required: false, hint: "USD, optional" },
   lastServiceDate:  { label: "Last service date", required: true, hint: "ISO or MM/DD/YYYY" },
@@ -110,19 +110,22 @@ export function detectMapping(headers: string[]): Record<string, ImportField | n
 
 // --- Value parsers -----------------------------------------------------------
 
-const PRODUCT_MAP: Record<string, "MFB_31" | "MFB_34" | "MFB_35_FM"> = {
-  "mfb31": "MFB_31",
-  "mfb-31": "MFB_31",
-  "mfb34": "MFB_34",
-  "mfb-34": "MFB_34",
-  "mfb35fm": "MFB_35_FM",
-  "mfb-35-fm": "MFB_35_FM",
-  "mfb35": "MFB_35_FM",
-  "mfb-35": "MFB_35_FM",
+const PRODUCT_MAP: Record<string, "SYSTEM" | "SPRAY"> = {
+  system: "SYSTEM",
+  spray: "SPRAY",
+  // Legacy MFB codes still accepted so old CSVs import cleanly.
+  mfb31: "SYSTEM",
+  "mfb-31": "SYSTEM",
+  mfb34: "SYSTEM",
+  "mfb-34": "SYSTEM",
+  mfb35fm: "SPRAY",
+  "mfb-35-fm": "SPRAY",
+  mfb35: "SPRAY",
+  "mfb-35": "SPRAY",
 };
 
-export function parseProduct(raw: string): "MFB_31" | "MFB_34" | "MFB_35_FM" | null {
-  const c = raw.toLowerCase().replace(/[\s_]+/g, "");
+export function parseProduct(raw: string): "SYSTEM" | "SPRAY" | null {
+  const c = raw.toLowerCase().replace(/[\s_-]+/g, "");
   return PRODUCT_MAP[c] ?? null;
 }
 
@@ -188,7 +191,7 @@ export type ParsedRow = {
     city: string;
     state: string;
     zip: string;
-    product: "MFB_31" | "MFB_34" | "MFB_35_FM";
+    product: "SYSTEM" | "SPRAY";
     sqft: number;
     contractValue: number;
     lastServiceDate: Date;

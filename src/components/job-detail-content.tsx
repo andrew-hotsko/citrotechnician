@@ -174,16 +174,6 @@ export function JobDetailContent({
           }
         />
         <Fact
-          label="Sq ft treated"
-          value={job.sqftTreated.toLocaleString()}
-        />
-        <Fact
-          label="Contract value"
-          value={formatCurrency(
-            job.contractValue ? Number(job.contractValue) : null,
-          )}
-        />
-        <Fact
           label="Maintenance interval"
           value={`${job.maintenanceIntervalMonths} months`}
         />
