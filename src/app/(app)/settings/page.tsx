@@ -36,12 +36,12 @@ const LINKS: SettingLink[] = [
     status: "available",
   },
   {
-    href: "/settings",
+    href: "/settings/salesforce",
     icon: RefreshCw,
     title: "Salesforce sync",
     description:
-      "Nightly pull of Closed Won opportunities. Manual sync trigger and sync history.",
-    status: "coming soon",
+      "Nightly one-way pull of Closed Won opportunities. Connection status, manual sync, and history.",
+    status: "available",
   },
 ];
 

@@ -44,6 +44,7 @@ model User {
   assignedTasks           Task[]
   communications          CommunicationLog[]
   checklistItemsCompleted ChecklistItem[]
+  salesforceSyncsRun      SalesforceSync[]
 }
 
 enum Role {
@@ -371,4 +372,56 @@ enum CommunicationChannel {
 enum CommunicationDirection {
   OUTBOUND
   INBOUND
+}
+
+// -----------------------------------------------------------------------------
+// Salesforce one-way ingest
+//
+// Each invocation of the SF sync gets a row here so the office has a clear
+// audit trail: what ran, when, how much it touched, what failed. This is
+// the "history" panel on Settings \u2192 Salesforce. Designed to be droppable
+// when CitroTech eventually replaces Salesforce in their stack.
+
+model SalesforceSync {
+  id                  String              @id @default(cuid())
+  triggeredBy         SyncTriggerSource
+  triggeredById       String?
+  triggeredByUser     User?               @relation(fields: [triggeredById], references: [id])
+
+  startedAt           DateTime            @default(now())
+  finishedAt          DateTime?
+  status              SyncStatus          @default(RUNNING)
+
+  // Counters \u2014 cheap to compute, expensive to recompute, so we store.
+  opportunitiesSeen   Int                 @default(0)
+  customersCreated    Int                 @default(0)
+  customersUpdated    Int                 @default(0)
+  propertiesCreated   Int                 @default(0)
+  jobsCreated         Int                 @default(0)
+  rowsSkipped         Int                 @default(0)
+  errorCount          Int                 @default(0)
+
+  // Top-level error (connection failure, bad query, etc).
+  errorMessage        String?
+
+  // Per-row issues \u2014 SOQL row id + reason.
+  rowErrors           Json?
+
+  // The SOQL query the run actually executed, frozen for replay.
+  soqlQuery           String?
+
+  @@index([startedAt])
+}
+
+enum SyncTriggerSource {
+  CRON
+  MANUAL
+  TEST
+}
+
+enum SyncStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILED
 }
