@@ -56,13 +56,13 @@ Today, scheduling happens in spreadsheets and group texts. That doesn't scale. W
 
 | Layer | Choice |
 |---|---|
-| Framework | Next.js 15 (App Router) + TypeScript |
+| Framework | Next.js 16 (App Router) + TypeScript |
 | Styling | Tailwind CSS |
-| Database | Neon (PostgreSQL) |
+| Database | Supabase (PostgreSQL) |
 | ORM | Prisma |
-| Auth | Clerk |
+| Auth | Supabase Auth (Microsoft / Entra ID) |
 | Hosting | Vercel |
-| File storage | Vercel Blob |
+| File storage | Supabase Storage |
 | Maps | Google Maps JavaScript API |
 | PDF | React-PDF (`@react-pdf/renderer`) |
 | Salesforce | `jsforce` (read-only for now) |
@@ -82,9 +82,9 @@ Notifications are **in-app only**. No email or SMS dependencies for MVP. The Ops
 
 ```prisma
 model User {
-  id            String   @id @default(cuid())
-  clerkId       String   @unique
-  email         String   @unique
+  id             String   @id @default(cuid())
+  supabaseUserId String?  @unique
+  email          String   @unique
   name          String
   role          Role     @default(VIEWER)
   initials      String?
@@ -359,10 +359,12 @@ GET  /api/customers
 POST /api/customers
 
 POST /api/import/csv
-POST /api/salesforce/sync         (cron)
-POST /api/reminders/run           (cron, daily)
-POST /api/webhooks/clerk
+POST /api/salesforce/sync         (cron, nightly)
+POST /api/reminders/run           (cron, daily 9am)
 ```
+
+User rows are upserted from the Supabase session on first request via
+`getCurrentUser()` — no separate auth webhook.
 
 ---
 
@@ -418,7 +420,7 @@ POST /api/webhooks/clerk
 - **Checklist:** tap row to toggle. Items pulled from product template.
 - **Photos:** Before (min 2) + After (min 2) grid. Tap empty slot → camera input. Compress to ~1500px longest side. Show upload progress.
 - **Signature:** full-width `react-signature-canvas`. Clear / Capture buttons.
-- **Complete:** triggers `/api/jobs/[id]/complete` → generates PDF service report via React-PDF → stores in Vercel Blob → creates child maintenance Job → advances stage to COMPLETED → returns to list.
+- **Complete:** triggers `/api/jobs/[id]/complete` → generates PDF service report via React-PDF → stores in Supabase Storage (`job-media` bucket) → creates child maintenance Job → advances stage to COMPLETED → returns to list.
 
 **Maintenance Engine**
 - When a job is marked COMPLETED:
@@ -454,7 +456,10 @@ POST /api/webhooks/clerk
 - Download error CSV for re-upload
 
 **Auth & Roles**
-- Clerk for auth, synced to local `User` table via Clerk webhook
+- Supabase Auth with the Microsoft (Entra ID) provider, restricted to the
+  CitroTech tenant. First sign-in upserts the local `User` row keyed by
+  `supabaseUserId`. Email gates: only addresses listed in `ADMIN_EMAILS` /
+  `ALLOWED_EMAILS` env vars can sign in.
 - Route-level guards:
   - `/tech/*` → TECH, ADMIN
   - `/settings/*` → ADMIN, OPS_MANAGER
@@ -503,9 +508,9 @@ POST /api/webhooks/clerk
 ### Build Sequence
 
 **Phase 1 — Foundation**
-- Next.js 15 + TypeScript + Tailwind scaffold
-- Prisma schema + Neon connection
-- Clerk auth + User sync webhook
+- Next.js 16 + TypeScript + Tailwind scaffold
+- Prisma schema + Supabase Postgres
+- Supabase Auth (Microsoft / Entra ID) with first-login user sync
 - Top nav + SlideOver primitive
 - Seed script with 18 sample jobs (use the prototype data)
 - **Stop for review before Phase 2**
@@ -581,4 +586,4 @@ Mix of stages. Three techs: Mike Rivera, Carlos Mendoza, Dave Thompson.
 
 Paste this as your first message in a fresh Claude Code session:
 
-> Initialize a new Next.js 15 project called `citrotech-jobs` with TypeScript, Tailwind, App Router, Prisma + Neon, and Clerk auth. Use `SPEC.md` in the project root as the source of truth. Start with Phase 1 (Foundation): project setup, Prisma schema from the spec, Clerk integration with the User webhook, base layout with TopNav, SlideOver primitive, and a seed script loading the 18 sample jobs from the spec. Stop after Phase 1 is working and let me review before continuing.
+> Initialize a new Next.js 16 project called `citrotech-jobs` with TypeScript, Tailwind, App Router, Prisma + Supabase, and Supabase Auth (Microsoft / Entra ID provider). Use `SPEC.md` in the project root as the source of truth. Start with Phase 1 (Foundation): project setup, Prisma schema from the spec, Supabase Auth with first-login user sync, base layout with TopNav, SlideOver primitive, and a seed script loading the 18 sample jobs from the spec. Stop after Phase 1 is working and let me review before continuing.
