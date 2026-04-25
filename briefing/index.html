@@ -1,0 +1,1022 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CitroTechnician — Team Briefing</title>
+<style>
+  /* ---------- Reset / base ---------- */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    color: #111827;
+    background: #f5f5f4;
+    line-height: 1.5;
+    font-size: 14px;
+    letter-spacing: -0.005em;
+  }
+  h1, h2, h3, h4 { letter-spacing: -0.02em; margin: 0; font-weight: 600; }
+  h1 { font-size: 28px; }
+  h2 { font-size: 18px; }
+  h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; color: #6b7280; font-weight: 600; }
+  p { margin: 0 0 0.75em; }
+  code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.9em; background: #f3f4f6; padding: 1px 5px; border-radius: 4px; }
+  ul, ol { margin: 0 0 0.75em; padding-left: 1.25em; }
+  li { margin-bottom: 0.25em; }
+
+  /* ---------- Brand ---------- */
+  :root {
+    --orange: #dc6c1c;
+    --orange-100: #fed7aa;
+    --orange-50: #ffedd5;
+    --ink: #111827;
+    --ink-2: #4b5563;
+    --ink-3: #6b7280;
+    --ink-4: #9ca3af;
+    --line: #e5e7eb;
+    --line-2: #f3f4f6;
+    --paper: #ffffff;
+    --soft: #fafaf9;
+  }
+
+  /* ---------- Page frame ---------- */
+  .page {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 28px 32px 80px;
+  }
+
+  .cover {
+    background: linear-gradient(160deg, #1a1a1a 0%, #2a1a10 100%);
+    color: #fff;
+    border-radius: 16px;
+    padding: 36px 40px 32px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::after {
+    content: "";
+    position: absolute;
+    right: -40px; top: -40px;
+    width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(220,108,28,0.45), transparent 70%);
+    pointer-events: none;
+  }
+  .cover .logo {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-bottom: 16px;
+  }
+  .cover .logo .mark {
+    height: 26px; width: 26px; border-radius: 6px;
+    background: var(--orange);
+    color: #fff;
+    display: grid; place-items: center;
+    font-weight: 700; font-size: 13px;
+  }
+  .cover h1 { font-size: 30px; line-height: 1.1; }
+  .cover .sub {
+    color: #d4d4d4;
+    font-size: 13px;
+    margin-top: 6px;
+    max-width: 520px;
+  }
+  .cover .meta {
+    margin-top: 20px;
+    display: flex; gap: 24px; flex-wrap: wrap;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #a3a3a3;
+  }
+  .cover .meta span strong { color: #fff; font-weight: 500; letter-spacing: 0.04em; }
+
+  /* ---------- Cards / sections ---------- */
+  section { margin-bottom: 24px; }
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 22px;
+  }
+  .card + .card { margin-top: 12px; }
+
+  .grid-3 { display: grid; gap: 12px; grid-template-columns: repeat(3, 1fr); }
+  .grid-2 { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 720px) { .grid-3, .grid-2 { grid-template-columns: 1fr; } }
+
+  .role {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px;
+    display: flex; flex-direction: column;
+  }
+  .role .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 11px;
+    color: var(--ink-2);
+    align-self: flex-start;
+  }
+  .role h3 { color: var(--ink); text-transform: none; letter-spacing: -0.01em; font-size: 16px; margin: 8px 0 2px; }
+  .role .who { font-size: 12px; color: var(--ink-3); margin-bottom: 10px; }
+  .role .does {
+    border-top: 1px solid var(--line-2);
+    padding-top: 10px;
+    margin-top: auto;
+    font-size: 12.5px;
+    color: var(--ink-2);
+  }
+  .role .does ul { padding-left: 1em; margin: 0; }
+  .role .does li { margin: 3px 0; }
+
+  /* Section header line */
+  .section-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 10px 4px;
+  }
+  .section-head h2 { font-size: 18px; }
+  .section-head .tag {
+    font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--ink-4);
+  }
+
+  /* Stage flow / pipeline */
+  .pipe-svg { width: 100%; height: auto; display: block; }
+
+  /* Mock screen */
+  .mock {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fbfbfa;
+    overflow: hidden;
+    font-size: 11px;
+  }
+  .mock .bar {
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    padding: 8px 12px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; color: var(--ink-3);
+  }
+  .mock .bar .dot { width: 8px; height: 8px; border-radius: 99px; background: #d4d4d8; }
+  .mock .bar .dot.r { background: #ef4444; }
+  .mock .bar .dot.y { background: #f59e0b; }
+  .mock .bar .dot.g { background: #10b981; }
+
+  /* Annotated row layout for screen-tour */
+  .tour {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+  @media (max-width: 720px) { .tour { grid-template-columns: 1fr; } }
+  .tour .label h3 { color: var(--ink); text-transform: none; letter-spacing: -0.01em; font-size: 15px; margin-bottom: 4px; }
+  .tour .label .where { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; color: var(--ink-3); margin-bottom: 8px; display: inline-block; background: var(--line-2); padding: 1px 6px; border-radius: 4px; }
+  .tour .label p { font-size: 12.5px; color: var(--ink-2); }
+  .tour .label .who-can { font-size: 11px; margin-top: 8px; color: var(--ink-3); }
+  .tour .label .who-can b { color: var(--ink); }
+
+  /* Badges (live samples) */
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px; font-weight: 600;
+    line-height: 1.6;
+    margin-right: 4px;
+  }
+  .badge .b-dot { width: 6px; height: 6px; border-radius: 99px; }
+  .badge.upcoming   { background: #f5f5f4; color: #1f2937; box-shadow: inset 0 0 0 1px #e5e7eb; }
+  .badge.outreach   { background: #fef3c7; color: #78350f; box-shadow: inset 0 0 0 1px #fde68a; }
+  .badge.confirmed  { background: #d1fae5; color: #065f46; box-shadow: inset 0 0 0 1px #a7f3d0; }
+  .badge.scheduled  { background: #dbeafe; color: #1e3a8a; box-shadow: inset 0 0 0 1px #bfdbfe; }
+  .badge.progress   { background: #ede9fe; color: #4c1d95; box-shadow: inset 0 0 0 1px #ddd6fe; }
+  .badge.completed  { background: #111827; color: #fff; }
+  .badge.deferred   { background: #fee2e2; color: #7f1d1d; box-shadow: inset 0 0 0 1px #fecaca; }
+  .badge.install    { background: #ffedd5; color: #7c2d12; box-shadow: inset 0 0 0 1px #fed7aa; }
+  .badge.year       { background: #f5f5f4; color: #1f2937; box-shadow: inset 0 0 0 1px #e5e7eb; }
+  .badge.final      { background: #d1fae5; color: #065f46; box-shadow: inset 0 0 0 1px #a7f3d0; }
+  .b-dot.gray { background: #a8a29e; }
+  .b-dot.amber { background: #f59e0b; }
+  .b-dot.emerald { background: #10b981; }
+  .b-dot.blue { background: #3b82f6; }
+  .b-dot.violet { background: #8b5cf6; }
+  .b-dot.dark { background: #34d399; }
+  .b-dot.red { background: #ef4444; }
+
+  /* Table */
+  table.ref {
+    width: 100%; border-collapse: collapse; font-size: 12.5px;
+  }
+  table.ref th, table.ref td {
+    text-align: left; padding: 8px 10px;
+    border-bottom: 1px solid var(--line-2);
+  }
+  table.ref th {
+    text-transform: uppercase; letter-spacing: 0.08em;
+    font-size: 10px; color: var(--ink-3); font-weight: 600;
+    background: var(--soft);
+  }
+  table.ref tr:last-child td { border-bottom: 0; }
+  table.ref td.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--ink-2); font-size: 11.5px; }
+
+  /* Checklist */
+  .checklist { font-size: 13px; }
+  .checklist li {
+    list-style: none;
+    margin-bottom: 6px;
+    position: relative;
+    padding-left: 22px;
+  }
+  .checklist li::before {
+    content: "";
+    position: absolute; left: 0; top: 3px;
+    width: 14px; height: 14px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 4px;
+    background: #fff;
+  }
+
+  /* Callout */
+  .callout {
+    border-left: 3px solid var(--orange);
+    background: #fff7ed;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    color: #7c2d12;
+  }
+  .callout strong { color: #431407; }
+
+  /* Print */
+  @media print {
+    body { background: #fff; }
+    .page { padding: 0; }
+    .cover { color: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .card, .role, .mock, .badge, .callout { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    section { break-inside: avoid; page-break-inside: avoid; }
+    .tour { break-inside: avoid; }
+  }
+
+  .small { font-size: 11.5px; color: var(--ink-3); }
+  .kbd {
+    display: inline-block; font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11px; padding: 1px 5px; border: 1px solid var(--line);
+    border-bottom-width: 2px; border-radius: 4px; background: #fff; color: var(--ink-2);
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ============================================================ COVER -->
+<header class="cover">
+  <div class="logo">
+    <span class="mark">C</span>
+    <span style="font-weight:600; font-size:14px;">CitroTechnician</span>
+  </div>
+  <h1>The CitroTech<br/>field-ops playbook.</h1>
+  <p class="sub">
+    One internal tool to replace spreadsheets, group texts, and paper checklists —
+    from a closed deal through every annual maintenance visit.
+  </p>
+  <div class="meta">
+    <span><strong>5 internal users</strong> · 1 ops manager, 1 COO, 3 techs</span>
+    <span><strong>~60 active jobs</strong> · 2-year maintenance cycle</span>
+    <span><strong>Stack</strong> · Next.js · Supabase · Vercel</span>
+  </div>
+</header>
+
+<!-- ============================================================ WHAT IT IS -->
+<section>
+  <div class="section-head">
+    <h2>What CitroTechnician is</h2>
+    <span class="tag">30-second version</span>
+  </div>
+  <div class="card">
+    <p style="font-size:14.5px; color:var(--ink);">
+      Every CitroTech sale becomes a multi-year relationship. Properties get an
+      <strong>install</strong>, then a <strong>Year-1</strong> inspection, then a
+      <strong>Year-2 final</strong>. CitroTechnician is the system that knows what's
+      due, who's contacting whom, who's driving where, and who signed off when.
+      Salesforce stays the source of truth for sold deals; this tool runs everything
+      that happens after.
+    </p>
+
+    <!-- Replacement diagram -->
+    <svg viewBox="0 0 880 130" class="pipe-svg" role="img" aria-label="What this replaces">
+      <defs>
+        <marker id="arr1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/>
+        </marker>
+      </defs>
+      <!-- left pile -->
+      <g font-family="system-ui" font-size="11" fill="#6b7280">
+        <rect x="20" y="20"  width="200" height="22" rx="4" fill="#fde68a" stroke="#fcd34d"/>
+        <text x="30" y="35">📊  Maintenance schedule .xlsx</text>
+        <rect x="40" y="50"  width="200" height="22" rx="4" fill="#dbeafe" stroke="#93c5fd"/>
+        <text x="50" y="65">💬  "Mike — can you do Folsom Tuesday?"</text>
+        <rect x="20" y="80"  width="200" height="22" rx="4" fill="#fee2e2" stroke="#fca5a5"/>
+        <text x="30" y="95">📄  Paper checklists in the truck</text>
+      </g>
+      <!-- arrow -->
+      <line x1="260" y1="60" x2="380" y2="60" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr1)"/>
+      <text x="265" y="55" font-family="system-ui" font-size="10" fill="#9ca3af" letter-spacing="1">REPLACED BY</text>
+      <!-- right box -->
+      <g>
+        <rect x="400" y="20" width="460" height="90" rx="10" fill="#111827"/>
+        <text x="420" y="48" font-family="system-ui" font-size="14" font-weight="600" fill="#fff">CitroTechnician</text>
+        <text x="420" y="68" font-family="system-ui" font-size="11" fill="#d1d5db">Pipeline · Map · Calendar · Tech mobile · Auto-reminders</text>
+        <text x="420" y="86" font-family="system-ui" font-size="10" fill="#9ca3af" letter-spacing="0.5">One source of truth · One login · Same data on every screen</text>
+        <circle cx="838" cy="48" r="8" fill="#dc6c1c"/>
+        <text x="834" y="52" font-family="system-ui" font-size="11" font-weight="700" fill="#fff">C</text>
+      </g>
+    </svg>
+
+    <p class="small" style="margin-top:8px;">
+      This is <em>not</em> a CRM, <em>not</em> a customer portal, and <em>not</em> a
+      partner system. Tuned specifically to CitroTech's product lifecycle.
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================ ROLES -->
+<section>
+  <div class="section-head">
+    <h2>Who uses it · the three roles</h2>
+    <span class="tag">role &rarr; experience</span>
+  </div>
+  <div class="grid-3">
+    <!-- OPS MANAGER -->
+    <div class="role">
+      <span class="pill">🖥️ Desktop · Power user</span>
+      <h3>Ops Manager</h3>
+      <div class="who">Primary daily user. Runs the pipeline, dispatches techs, drives customer outreach.</div>
+      <div class="does">
+        <ul>
+          <li>Lives in <b>Pipeline</b> + <b>Tasks</b></li>
+          <li>Drags jobs through stages</li>
+          <li>Assigns techs &amp; schedules days</li>
+          <li>Plans NorCal / SoCal trips on the map</li>
+          <li>Logs every call / email</li>
+        </ul>
+      </div>
+    </div>
+    <!-- COO -->
+    <div class="role">
+      <span class="pill">🖥️ Desktop · Admin</span>
+      <h3>COO (Andrew)</h3>
+      <div class="who">Oversight, pricing, escalations. Reads dashboards more than edits them.</div>
+      <div class="does">
+        <ul>
+          <li>Lives in <b>Dashboard</b></li>
+          <li>Reviews overdue + Year-2-final jobs</li>
+          <li>Manages team &amp; templates in Settings</li>
+          <li>Runs Salesforce sync</li>
+          <li>Same powers as Ops Manager + admin tools</li>
+        </ul>
+      </div>
+    </div>
+    <!-- TECH -->
+    <div class="role">
+      <span class="pill">📱 Mobile-only</span>
+      <h3>Field Tech</h3>
+      <div class="who">Mike Rivera · Carlos Mendoza · Dave Thompson. Phone in the truck, gloves on.</div>
+      <div class="does">
+        <ul>
+          <li>Sees only <b>their</b> jobs at <code>/tech</code></li>
+          <li>Tap-to-check pre-job list</li>
+          <li>Before / after photos</li>
+          <li>Customer signature on glass</li>
+          <li>"Complete" → PDF auto-generated</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ JOB LIFECYCLE -->
+<section>
+  <div class="section-head">
+    <h2>The job lifecycle</h2>
+    <span class="tag">7 stages · automatic + manual</span>
+  </div>
+  <div class="card">
+    <svg viewBox="0 0 880 230" class="pipe-svg" role="img" aria-label="Pipeline stages">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/>
+        </marker>
+        <style>
+          .stg { font: 600 11px system-ui; }
+          .lbl { font: 10px ui-monospace, Menlo, monospace; fill: #6b7280; }
+          .desc { font: 10.5px system-ui; fill: #4b5563; }
+        </style>
+      </defs>
+
+      <!-- Row 1: 6 main stages -->
+      <g>
+        <!-- Upcoming -->
+        <g transform="translate(10,30)">
+          <rect width="130" height="56" rx="8" fill="#f5f5f4" stroke="#e5e7eb"/>
+          <circle cx="14" cy="14" r="4" fill="#a8a29e"/>
+          <text x="24" y="18" class="stg" fill="#1f2937">Upcoming</text>
+          <text x="14" y="36" class="desc">90+ days out.</text>
+          <text x="14" y="48" class="desc">Quietly waiting.</text>
+        </g>
+        <line x1="142" y1="58" x2="158" y2="58" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ar)"/>
+        <!-- Outreach -->
+        <g transform="translate(160,30)">
+          <rect width="130" height="56" rx="8" fill="#fef3c7" stroke="#fde68a"/>
+          <circle cx="14" cy="14" r="4" fill="#f59e0b"/>
+          <text x="24" y="18" class="stg" fill="#78350f">Outreach</text>
+          <text x="14" y="36" class="desc">Engine auto-flips at T-60.</text>
+          <text x="14" y="48" class="desc">Ops calls / emails.</text>
+        </g>
+        <line x1="292" y1="58" x2="308" y2="58" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ar)"/>
+        <!-- Confirmed -->
+        <g transform="translate(310,30)">
+          <rect width="130" height="56" rx="8" fill="#d1fae5" stroke="#a7f3d0"/>
+          <circle cx="14" cy="14" r="4" fill="#10b981"/>
+          <text x="24" y="18" class="stg" fill="#065f46">Confirmed</text>
+          <text x="14" y="36" class="desc">Customer said yes.</text>
+          <text x="14" y="48" class="desc">Not on calendar yet.</text>
+        </g>
+        <line x1="442" y1="58" x2="458" y2="58" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ar)"/>
+        <!-- Scheduled -->
+        <g transform="translate(460,30)">
+          <rect width="130" height="56" rx="8" fill="#dbeafe" stroke="#bfdbfe"/>
+          <circle cx="14" cy="14" r="4" fill="#3b82f6"/>
+          <text x="24" y="18" class="stg" fill="#1e3a8a">Scheduled</text>
+          <text x="14" y="36" class="desc">Date + tech locked.</text>
+          <text x="14" y="48" class="desc">Visible to that tech.</text>
+        </g>
+        <line x1="592" y1="58" x2="608" y2="58" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ar)"/>
+        <!-- In progress -->
+        <g transform="translate(610,30)">
+          <rect width="130" height="56" rx="8" fill="#ede9fe" stroke="#ddd6fe"/>
+          <circle cx="14" cy="14" r="4" fill="#8b5cf6"/>
+          <text x="24" y="18" class="stg" fill="#4c1d95">In progress</text>
+          <text x="14" y="36" class="desc">Tech is on site.</text>
+          <text x="14" y="48" class="desc">Auto when first checkbox ticked.</text>
+        </g>
+        <line x1="742" y1="58" x2="758" y2="58" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ar)"/>
+        <!-- Completed -->
+        <g transform="translate(760,30)">
+          <rect width="118" height="56" rx="8" fill="#111827"/>
+          <circle cx="14" cy="14" r="4" fill="#34d399"/>
+          <text x="24" y="18" class="stg" fill="#fff">Completed</text>
+          <text x="14" y="36" class="desc" fill="#d1d5db">Signature + PDF.</text>
+          <text x="14" y="48" class="desc" fill="#d1d5db">Next cycle spawned.</text>
+        </g>
+      </g>
+
+      <!-- Drop-out: Deferred -->
+      <g transform="translate(310,130)">
+        <rect width="130" height="56" rx="8" fill="#fee2e2" stroke="#fecaca"/>
+        <circle cx="14" cy="14" r="4" fill="#ef4444"/>
+        <text x="24" y="18" class="stg" fill="#7f1d1d">Deferred</text>
+        <text x="14" y="36" class="desc">Skipped this cycle.</text>
+        <text x="14" y="48" class="desc">Reason required.</text>
+      </g>
+      <line x1="375" y1="86" x2="375" y2="128" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#ar)"/>
+
+      <!-- Maintenance loop arrow -->
+      <path d="M 819 88 Q 819 215 70 215 Q 70 86 70 86" fill="none" stroke="#dc6c1c" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+      <text x="345" y="207" font-family="system-ui" font-size="11" fill="#dc6c1c" font-weight="600">
+        next maintenance cycle auto-spawned
+      </text>
+    </svg>
+
+    <p class="small" style="margin-top:6px;">
+      Drag-and-drop on the Pipeline updates stages — except <b>Completed</b>, which is
+      only reachable through the tech's signature + PDF flow (skipping that would orphan
+      the maintenance chain).
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================ MAINTENANCE CYCLE -->
+<section>
+  <div class="section-head">
+    <h2>Maintenance cycles · the 2-year agreement</h2>
+    <span class="tag">how the chain works</span>
+  </div>
+  <div class="card">
+    <svg viewBox="0 0 880 160" class="pipe-svg" role="img" aria-label="Maintenance cycle">
+      <defs>
+        <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#dc6c1c"/>
+        </marker>
+        <style>
+          .yr { font: 600 13px system-ui; }
+          .yr-sub { font: 11px system-ui; fill: #4b5563; }
+          .yr-tag { font: 10px ui-monospace, Menlo, monospace; fill: #6b7280; }
+        </style>
+      </defs>
+
+      <!-- Y0 install -->
+      <g transform="translate(40,40)">
+        <rect width="220" height="82" rx="10" fill="#ffedd5" stroke="#fdba74"/>
+        <text x="20" y="26" class="yr" fill="#7c2d12">Install · Year 0</text>
+        <text x="20" y="48" class="yr-sub">Spray crew applies the product.</text>
+        <text x="20" y="64" class="yr-sub">Sets the maintenance clock.</text>
+        <rect x="148" y="14" width="60" height="18" rx="9" fill="#fff" stroke="#fb923c"/>
+        <text x="158" y="27" class="yr-tag" fill="#7c2d12">cycle 0</text>
+      </g>
+
+      <line x1="265" y1="80" x2="305" y2="80" stroke="#dc6c1c" stroke-width="2" marker-end="url(#ar2)"/>
+      <text x="270" y="72" font-family="system-ui" font-size="10" fill="#dc6c1c" letter-spacing="1">+12 mo</text>
+
+      <!-- Y1 -->
+      <g transform="translate(310,40)">
+        <rect width="220" height="82" rx="10" fill="#f5f5f4" stroke="#e5e7eb"/>
+        <text x="20" y="26" class="yr" fill="#1f2937">Year 1</text>
+        <text x="20" y="48" class="yr-sub">Inspection + reapplication.</text>
+        <text x="20" y="64" class="yr-sub">Reminders fire at T-90 / 60 / 30.</text>
+        <rect x="148" y="14" width="60" height="18" rx="9" fill="#fff" stroke="#a8a29e"/>
+        <text x="158" y="27" class="yr-tag">cycle 1 / 2</text>
+      </g>
+
+      <line x1="535" y1="80" x2="575" y2="80" stroke="#dc6c1c" stroke-width="2" marker-end="url(#ar2)"/>
+      <text x="540" y="72" font-family="system-ui" font-size="10" fill="#dc6c1c" letter-spacing="1">+12 mo</text>
+
+      <!-- Y2 final -->
+      <g transform="translate(580,40)">
+        <rect width="240" height="82" rx="10" fill="#d1fae5" stroke="#6ee7b7"/>
+        <text x="20" y="26" class="yr" fill="#065f46">Year 2 (final)</text>
+        <text x="20" y="48" class="yr-sub">Last scheduled visit on contract.</text>
+        <text x="20" y="64" class="yr-sub">Chain ends — renew or let lapse.</text>
+        <rect x="155" y="14" width="70" height="18" rx="9" fill="#fff" stroke="#10b981"/>
+        <text x="165" y="27" class="yr-tag" fill="#065f46">cycle 2 / 2</text>
+      </g>
+    </svg>
+    <div class="grid-2" style="margin-top:8px;">
+      <p class="small" style="margin:0;">
+        <b>cycleIndex</b> = where this job sits in the agreement.
+        <b>cyclesPlanned</b> = how many annual visits the contract covers (default 2).
+        Both editable per job for one-offs and longer agreements.
+      </p>
+      <p class="small" style="margin:0;">
+        Completing a job spawns its successor automatically <em>unless</em> it's the
+        final cycle. The chain can be ended early by deferring with a reason
+        (cancellation, sold property, customer churn).
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ DAILY PLAYBOOKS -->
+<section>
+  <div class="section-head">
+    <h2>Daily playbooks</h2>
+    <span class="tag">do this · in this order</span>
+  </div>
+
+  <div class="grid-2">
+    <!-- Ops Mon morning -->
+    <div class="card">
+      <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14.5px; margin-bottom:10px;">
+        🖥️&nbsp; Ops Manager · Monday morning
+      </h3>
+      <ol style="font-size:13px; padding-left:1.1em;">
+        <li>Open <code>/dashboard</code>. Scan the four counters: <b>Overdue</b>, <b>Due in 60</b>, <b>Scheduled</b>, <b>This week</b>.</li>
+        <li>Hit <code>/tasks</code>. Anything the engine surfaced overnight is here. Each row is "do an outreach." Mark complete after the call.</li>
+        <li>Open <code>/pipeline</code>. Drag every <i>Confirmed</i> job to <i>Scheduled</i> as you book the date.</li>
+        <li>Open <code>/map?trip=1</code>. Cluster nearby jobs into a single tech run. Click pins → "Schedule as trip."</li>
+        <li>Log every call/email/text on the job's slide-over (<i>Communication</i> button) — that's the customer's paper trail.</li>
+      </ol>
+    </div>
+
+    <!-- COO weekly -->
+    <div class="card">
+      <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14.5px; margin-bottom:10px;">
+        🖥️&nbsp; COO · weekly review
+      </h3>
+      <ol style="font-size:13px; padding-left:1.1em;">
+        <li><b>Dashboard → Needs Attention.</b> Anything red is overdue revenue. Shouldn't grow week to week.</li>
+        <li><b>Pipeline → Year 2 (final) badges.</b> Those are renewal conversations to start now.</li>
+        <li><b>Settings → Salesforce.</b> Last sync should be < 24 hrs old, status SUCCESS.</li>
+        <li><b>Settings → Team.</b> Review tech assignments and active flags.</li>
+        <li>Hit <b>"Run the maintenance engine now"</b> if something feels stuck — safe, idempotent.</li>
+      </ol>
+    </div>
+
+    <!-- Tech on a job -->
+    <div class="card" style="grid-column: 1 / -1;">
+      <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14.5px; margin-bottom:10px;">
+        📱&nbsp; Field Tech · on a job
+      </h3>
+      <svg viewBox="0 0 880 110" class="pipe-svg" role="img" aria-label="Tech mobile flow">
+        <defs>
+          <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/>
+          </marker>
+          <style>
+            .step { font: 600 12px system-ui; fill: #1f2937; }
+            .stp-sub { font: 10.5px system-ui; fill: #6b7280; }
+          </style>
+        </defs>
+        <g>
+          <rect x="10"  y="20" width="120" height="70" rx="8" fill="#fff" stroke="#e5e7eb"/>
+          <text x="22" y="42" class="step">Today's list</text>
+          <text x="22" y="58" class="stp-sub">/tech</text>
+          <text x="22" y="76" class="stp-sub">Tap a job</text>
+        </g>
+        <line x1="132" y1="55" x2="148" y2="55" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ar3)"/>
+        <g>
+          <rect x="150" y="20" width="120" height="70" rx="8" fill="#fff" stroke="#e5e7eb"/>
+          <text x="162" y="42" class="step">Brief</text>
+          <text x="162" y="58" class="stp-sub">Read access notes</text>
+          <text x="162" y="76" class="stp-sub">Get directions</text>
+        </g>
+        <line x1="272" y1="55" x2="288" y2="55" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ar3)"/>
+        <g>
+          <rect x="290" y="20" width="120" height="70" rx="8" fill="#fff" stroke="#e5e7eb"/>
+          <text x="302" y="42" class="step">Checklist</text>
+          <text x="302" y="58" class="stp-sub">Tap to check</text>
+          <text x="302" y="76" class="stp-sub">Auto → In progress</text>
+        </g>
+        <line x1="412" y1="55" x2="428" y2="55" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ar3)"/>
+        <g>
+          <rect x="430" y="20" width="120" height="70" rx="8" fill="#fff" stroke="#e5e7eb"/>
+          <text x="442" y="42" class="step">Photos</text>
+          <text x="442" y="58" class="stp-sub">2 before · 2 after</text>
+          <text x="442" y="76" class="stp-sub">Tap → camera</text>
+        </g>
+        <line x1="552" y1="55" x2="568" y2="55" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ar3)"/>
+        <g>
+          <rect x="570" y="20" width="120" height="70" rx="8" fill="#fff" stroke="#e5e7eb"/>
+          <text x="582" y="42" class="step">Signature</text>
+          <text x="582" y="58" class="stp-sub">Customer signs</text>
+          <text x="582" y="76" class="stp-sub">on the screen</text>
+        </g>
+        <line x1="692" y1="55" x2="708" y2="55" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ar3)"/>
+        <g>
+          <rect x="710" y="20" width="160" height="70" rx="8" fill="#111827"/>
+          <text x="722" y="42" class="step" fill="#fff">Complete</text>
+          <text x="722" y="58" class="stp-sub" fill="#d1d5db">PDF auto-generated</text>
+          <text x="722" y="76" class="stp-sub" fill="#d1d5db">Next cycle queued</text>
+        </g>
+      </svg>
+      <p class="small" style="margin-top:8px;">
+        The <b>Complete</b> button is grey until a customer signature is captured.
+        That's the only gate. Everything else (photos, checklist) is recommended,
+        not enforced — if a customer is in a hurry, the tech can still close out.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ SCREEN TOUR -->
+<section>
+  <div class="section-head">
+    <h2>Screen tour</h2>
+    <span class="tag">where things live</span>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="tour">
+      <div class="label">
+        <h3>Dashboard</h3>
+        <span class="where">/dashboard</span>
+        <p>The home screen. Four numbers at the top. "Needs attention" list ranks the next 6 jobs by urgency. Tech workload shows who's loaded vs. free. Recent activity is the team-wide feed.</p>
+        <p class="who-can"><b>Who:</b> everyone signs in here.</p>
+      </div>
+      <div class="mock">
+        <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span> &nbsp; CitroTechnician — Dashboard</div>
+        <svg viewBox="0 0 560 220" style="width:100%; display:block;">
+          <g font-family="system-ui">
+            <text x="14" y="20" font-size="11" fill="#9ca3af">SATURDAY, APRIL 25</text>
+            <text x="14" y="40" font-size="15" font-weight="600" fill="#111827">Good to see you, Andrew.</text>
+            <!-- stat cards -->
+            <g transform="translate(14,56)">
+              <rect width="125" height="48" rx="8" fill="#fff" stroke="#fecaca"/>
+              <text x="10" y="18" font-size="9" fill="#9a3412" letter-spacing="1">OVERDUE</text>
+              <text x="10" y="38" font-size="20" font-weight="600" fill="#b91c1c">3</text>
+            </g>
+            <g transform="translate(146,56)">
+              <rect width="125" height="48" rx="8" fill="#fff" stroke="#fde68a"/>
+              <text x="10" y="18" font-size="9" fill="#92400e" letter-spacing="1">DUE IN 60 DAYS</text>
+              <text x="10" y="38" font-size="20" font-weight="600" fill="#b45309">12</text>
+            </g>
+            <g transform="translate(278,56)">
+              <rect width="125" height="48" rx="8" fill="#fff" stroke="#bfdbfe"/>
+              <text x="10" y="18" font-size="9" fill="#1e3a8a" letter-spacing="1">SCHEDULED</text>
+              <text x="10" y="38" font-size="20" font-weight="600" fill="#1d4ed8">7</text>
+            </g>
+            <g transform="translate(410,56)">
+              <rect width="135" height="48" rx="8" fill="#fff" stroke="#e5e7eb"/>
+              <text x="10" y="18" font-size="9" fill="#6b7280" letter-spacing="1">THIS WEEK</text>
+              <text x="10" y="38" font-size="20" font-weight="600" fill="#111827">4</text>
+            </g>
+            <!-- panels -->
+            <g transform="translate(14,120)">
+              <rect width="365" height="86" rx="8" fill="#fff" stroke="#e5e7eb"/>
+              <text x="12" y="22" font-size="11" font-weight="600" fill="#111827">Needs attention</text>
+              <line x1="12" y1="32" x2="353" y2="32" stroke="#f3f4f6"/>
+              <text x="12" y="48" font-size="10" fill="#4b5563">Redwood Estates HOA · Folsom · 14d overdue</text>
+              <text x="12" y="64" font-size="10" fill="#4b5563">Granite Bay Vineyard · 3d overdue</text>
+              <text x="12" y="80" font-size="10" fill="#4b5563">Napa Valley Winery · due in 12d</text>
+            </g>
+            <g transform="translate(386,120)">
+              <rect width="159" height="86" rx="8" fill="#fff" stroke="#e5e7eb"/>
+              <text x="12" y="22" font-size="11" font-weight="600" fill="#111827">Tech workload</text>
+              <text x="12" y="40" font-size="10" fill="#4b5563">MR · ▮▮▮▮▮▯</text>
+              <text x="12" y="56" font-size="10" fill="#4b5563">CM · ▮▮▮▯▯▯</text>
+              <text x="12" y="72" font-size="10" fill="#4b5563">DT · ▮▮▯▯▯▯</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pipeline -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="tour">
+      <div class="label">
+        <h3>Pipeline</h3>
+        <span class="where">/pipeline</span>
+        <p>The Kanban. Seven columns. Drag a card from <i>Outreach</i> → <i>Confirmed</i> after the customer says yes. Click a card to open the slide-over with phone numbers, notes, history.</p>
+        <p class="who-can"><b>Who:</b> Ops Manager &amp; COO can drag. Viewers can read.</p>
+      </div>
+      <div class="mock">
+        <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span> &nbsp; Pipeline · 23 jobs</div>
+        <svg viewBox="0 0 560 230" style="width:100%; display:block;">
+          <g font-family="system-ui" font-size="10">
+            <!-- columns -->
+            <g>
+              <rect x="10"  y="14" width="80" height="200" rx="8" fill="#fafaf9" stroke="#e5e7eb"/>
+              <circle cx="22" cy="28" r="3" fill="#a8a29e"/><text x="30" y="32" font-weight="600" fill="#1f2937">Upcoming · 6</text>
+              <rect x="18" y="42" width="64" height="34" rx="4" fill="#fff" stroke="#e5e7eb" stroke-left="3"/>
+              <line x1="18" y1="42" x2="18" y2="76" stroke="#a8a29e" stroke-width="3"/>
+              <text x="24" y="56" fill="#111827">Carmel Coast</text>
+              <text x="24" y="68" fill="#9ca3af" font-size="9">Y1 · 38d</text>
+
+              <rect x="18" y="82" width="64" height="34" rx="4" fill="#fff" stroke="#e5e7eb"/>
+              <line x1="18" y1="82" x2="18" y2="116" stroke="#3b82f6" stroke-width="3"/>
+              <text x="24" y="96" fill="#111827">Tahoe Estates</text>
+              <text x="24" y="108" fill="#9ca3af" font-size="9">Install · 87d</text>
+            </g>
+            <g>
+              <rect x="100" y="14" width="80" height="200" rx="8" fill="#fef3c7" stroke="#fde68a"/>
+              <circle cx="112" cy="28" r="3" fill="#f59e0b"/><text x="120" y="32" font-weight="600" fill="#78350f">Outreach · 4</text>
+              <rect x="108" y="42" width="64" height="34" rx="4" fill="#fff" stroke="#fde68a"/>
+              <line x1="108" y1="42" x2="108" y2="76" stroke="#10b981" stroke-width="3"/>
+              <text x="114" y="56" fill="#111827">Redwood HOA</text>
+              <text x="114" y="68" fill="#dc2626" font-size="9">14d overdue</text>
+            </g>
+            <g>
+              <rect x="190" y="14" width="80" height="200" rx="8" fill="#d1fae5" stroke="#a7f3d0"/>
+              <circle cx="202" cy="28" r="3" fill="#10b981"/><text x="210" y="32" font-weight="600" fill="#065f46">Confirmed · 3</text>
+              <rect x="198" y="42" width="64" height="34" rx="4" fill="#fff" stroke="#a7f3d0"/>
+              <line x1="198" y1="42" x2="198" y2="76" stroke="#8b5cf6" stroke-width="3"/>
+              <text x="204" y="56" fill="#111827">Malibu Canyon</text>
+              <text x="204" y="68" fill="#9ca3af" font-size="9">Y2 final · 22d</text>
+            </g>
+            <g>
+              <rect x="280" y="14" width="80" height="200" rx="8" fill="#dbeafe" stroke="#bfdbfe"/>
+              <circle cx="292" cy="28" r="3" fill="#3b82f6"/><text x="300" y="32" font-weight="600" fill="#1e3a8a">Scheduled · 7</text>
+              <rect x="288" y="42" width="64" height="34" rx="4" fill="#fff" stroke="#bfdbfe"/>
+              <line x1="288" y1="42" x2="288" y2="76" stroke="#10b981" stroke-width="3"/>
+              <text x="294" y="56" fill="#111827">La Jolla Villa</text>
+              <text x="294" y="68" fill="#9ca3af" font-size="9">Tue, Apr 28</text>
+            </g>
+            <g>
+              <rect x="370" y="14" width="80" height="200" rx="8" fill="#ede9fe" stroke="#ddd6fe"/>
+              <circle cx="382" cy="28" r="3" fill="#8b5cf6"/><text x="390" y="32" font-weight="600" fill="#4c1d95">In progress · 1</text>
+              <rect x="378" y="42" width="64" height="34" rx="4" fill="#fff" stroke="#ddd6fe"/>
+              <line x1="378" y1="42" x2="378" y2="76" stroke="#3b82f6" stroke-width="3"/>
+              <text x="384" y="56" fill="#111827">Pasadena Hill</text>
+              <text x="384" y="68" fill="#9ca3af" font-size="9">Today</text>
+            </g>
+            <g>
+              <rect x="460" y="14" width="90" height="200" rx="8" fill="#111827"/>
+              <circle cx="472" cy="28" r="3" fill="#34d399"/><text x="480" y="32" font-weight="600" fill="#fff">Completed · 2</text>
+              <rect x="468" y="42" width="74" height="34" rx="4" fill="#1f2937"/>
+              <text x="476" y="56" fill="#fff">Oceanside HOA</text>
+              <text x="476" y="68" fill="#9ca3af" font-size="9">Apr 22</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Map -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="tour">
+      <div class="label">
+        <h3>Map · trip planner</h3>
+        <span class="where">/map</span>
+        <p>California pinned by status. Toggle <b>Plan a trip</b>, click pins to batch-select, then "Schedule as trip" assigns the tech and dates in one move. Saves the round-trip we'd otherwise drive twice.</p>
+        <p class="who-can"><b>Who:</b> Ops Manager &amp; COO can plan. Techs see read-only.</p>
+      </div>
+      <div class="mock">
+        <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span> &nbsp; Map · trip mode on · 4 selected</div>
+        <svg viewBox="0 0 560 220" style="width:100%; display:block;">
+          <rect width="560" height="220" fill="#f5f5f4"/>
+          <!-- left sidebar -->
+          <rect width="140" height="220" fill="#fff" stroke="#e5e7eb"/>
+          <g font-family="system-ui">
+            <text x="12" y="20" font-size="11" font-weight="600" fill="#111827">Filters</text>
+            <rect x="12" y="28" width="116" height="20" rx="4" fill="#f5f5f4"/>
+            <text x="20" y="42" font-size="9" fill="#6b7280">Stage: All</text>
+            <rect x="12" y="52" width="116" height="20" rx="4" fill="#f5f5f4"/>
+            <text x="20" y="66" font-size="9" fill="#6b7280">Region: All</text>
+            <rect x="12" y="86" width="116" height="22" rx="4" fill="#111827"/>
+            <text x="22" y="101" font-size="10" font-weight="600" fill="#fff">✓ Plan a trip</text>
+            <text x="12" y="130" font-size="9" font-weight="600" fill="#9ca3af" letter-spacing="1">QUICK ZOOM</text>
+            <rect x="12" y="138" width="36" height="20" rx="4" fill="#fff" stroke="#e5e7eb"/><text x="22" y="151" font-size="9" fill="#6b7280">NorCal</text>
+            <rect x="52" y="138" width="36" height="20" rx="4" fill="#fff" stroke="#e5e7eb"/><text x="62" y="151" font-size="9" fill="#6b7280">SoCal</text>
+            <rect x="92" y="138" width="36" height="20" rx="4" fill="#fff" stroke="#e5e7eb"/><text x="106" y="151" font-size="9" fill="#6b7280">All</text>
+          </g>
+          <!-- map area pins -->
+          <g>
+            <!-- coastline-ish -->
+            <path d="M 200 30 Q 240 70 230 110 Q 220 150 260 180 Q 300 200 360 200 Q 410 200 460 180 Q 510 160 540 130 Q 540 60 480 40 Q 420 30 360 35 Q 280 30 200 30 Z" fill="#fafaf9" stroke="#e5e7eb"/>
+            <!-- pins -->
+            <g>
+              <circle cx="260" cy="60" r="9" fill="#10b981" stroke="#111827" stroke-width="2"/>
+              <circle cx="278" cy="80" r="9" fill="#3b82f6" stroke="#111827" stroke-width="2"/>
+              <circle cx="298" cy="68" r="9" fill="#10b981" stroke="#111827" stroke-width="2"/>
+              <circle cx="316" cy="92" r="9" fill="#10b981" stroke="#111827" stroke-width="2"/>
+              <circle cx="420" cy="148" r="9" fill="#ef4444" stroke="#fff" stroke-width="2"/>
+              <circle cx="448" cy="170" r="9" fill="#f59e0b" stroke="#fff" stroke-width="2"/>
+              <circle cx="490" cy="160" r="9" fill="#a8a29e" stroke="#fff" stroke-width="2"/>
+            </g>
+            <!-- selected tally -->
+            <g>
+              <rect x="220" y="186" width="160" height="24" rx="6" fill="#111827"/>
+              <text x="232" y="201" font-family="system-ui" font-size="11" font-weight="600" fill="#fff">⛓ 4 selected</text>
+              <rect x="310" y="190" width="64" height="16" rx="4" fill="#dc6c1c"/>
+              <text x="318" y="201" font-family="system-ui" font-size="10" font-weight="700" fill="#fff">Schedule</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar / Tasks / Tech -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="label">
+        <h3>Calendar</h3>
+        <span class="where">/calendar</span>
+        <p>Week view, three swim-lanes (one per tech), seven day columns. Drag an unscheduled job from the right rail into a day cell to schedule it. Conflict badge if two land on the same day for the same tech.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">
+        <h3>Tasks</h3>
+        <span class="where">/tasks</span>
+        <p>The Ops Manager's inbox. Auto-generated by the maintenance engine at T-90, T-60, T-30, and overdue. Each task links to the job that triggered it. Mark complete when the call is done. Add ad-hoc tasks anytime.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">
+        <h3>Jobs &amp; Properties &amp; Customers</h3>
+        <span class="where">/jobs · /properties · /customers</span>
+        <p>The data tables. Search, filter, export to CSV. Open a row → slide-over with the full job detail.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">
+        <h3>Settings</h3>
+        <span class="where">/settings</span>
+        <p>Team roles, checklist templates per product (System / Spray), CSV import, Salesforce sync status, and the manual "Run engine now" button.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ QUICK REFERENCE -->
+<section>
+  <div class="section-head">
+    <h2>Quick reference</h2>
+    <span class="tag">at-a-glance</span>
+  </div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14px; margin-bottom:8px;">Stage badges</h3>
+    <p>
+      <span class="badge upcoming"><span class="b-dot gray"></span>Upcoming</span>
+      <span class="badge outreach"><span class="b-dot amber"></span>Outreach</span>
+      <span class="badge confirmed"><span class="b-dot emerald"></span>Confirmed</span>
+      <span class="badge scheduled"><span class="b-dot blue"></span>Scheduled</span>
+      <span class="badge progress"><span class="b-dot violet"></span>In progress</span>
+      <span class="badge completed"><span class="b-dot dark"></span>Completed</span>
+      <span class="badge deferred"><span class="b-dot red"></span>Deferred</span>
+    </p>
+    <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14px; margin:14px 0 8px;">Cycle badges</h3>
+    <p>
+      <span class="badge install">Install</span>
+      <span class="badge year">Year 1</span>
+      <span class="badge final">Year 2 (final)</span>
+    </p>
+  </div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14px; margin-bottom:8px;">Permissions</h3>
+    <table class="ref">
+      <thead>
+        <tr><th>Role</th><th>Office screens</th><th>Tech screens</th><th>Settings</th><th>Drag &amp; edit</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><b>Admin</b> (COO)</td><td>Yes</td><td>Yes (testing)</td><td>Yes</td><td>Yes</td></tr>
+        <tr><td><b>Ops Manager</b></td><td>Yes</td><td>—</td><td>Yes</td><td>Yes</td></tr>
+        <tr><td><b>Tech</b></td><td>—</td><td>Yes (own jobs)</td><td>—</td><td>Their own jobs only</td></tr>
+        <tr><td><b>Viewer</b></td><td>Read-only</td><td>—</td><td>—</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14px; margin-bottom:8px;">Things that happen automatically</h3>
+    <ul style="font-size:12.5px; padding-left:1.1em;">
+      <li>At <b>T-60 days</b>, every <i>Upcoming</i> job auto-flips to <i>Outreach</i> and a task lands in the inbox.</li>
+      <li>At <b>T-90 / T-60 / T-30</b>, reminder tasks are generated for the Ops Manager.</li>
+      <li>When a tech taps the <b>first checkbox</b>, the job moves to <i>In progress</i>.</li>
+      <li>On <b>Complete</b>: PDF service report stored, signature locked, child cycle created (unless final year), parent moves to <i>Completed</i>.</li>
+      <li>Each <b>night at 2am</b>, the Salesforce sync pulls Closed Won opps and creates new Install/Year-0 jobs.</li>
+      <li>Each <b>morning at 9am</b>, the maintenance engine fires reminders.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================ ONBOARDING CHECKLISTS -->
+<section>
+  <div class="section-head">
+    <h2>First-day checklists</h2>
+    <span class="tag">hand this to new users</span>
+  </div>
+  <div class="grid-3">
+    <div class="card">
+      <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14px; margin-bottom:10px;">Ops Manager</h3>
+      <ul class="checklist">
+        <li>Sign in at the URL with your <code>@citrotech.com</code> Microsoft account</li>
+        <li>Open <code>/dashboard</code> &amp; recognize all four counters</li>
+        <li>Open <code>/pipeline</code> &amp; drag one card to a new column</li>
+        <li>Open one job &amp; log a phone call via "Communication"</li>
+        <li>Open <code>/map?trip=1</code> &amp; click two pins</li>
+        <li>Open <code>/tasks</code>, complete one, mark another</li>
+        <li>Find your name in <code>/settings/team</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14px; margin-bottom:10px;">COO</h3>
+      <ul class="checklist">
+        <li>Verify your role shows ADMIN in the side nav</li>
+        <li>Walk the dashboard with the Ops Manager</li>
+        <li>Open <code>/settings/salesforce</code>, confirm "Configured"</li>
+        <li>Run a manual sync, watch counters tick</li>
+        <li>Open <code>/settings/templates</code> &amp; review the System / Spray checklists</li>
+        <li>Try "Run the maintenance engine now" — confirm it returns OK</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14px; margin-bottom:10px;">Field Tech</h3>
+      <ul class="checklist">
+        <li>Sign in on your phone — same Microsoft login</li>
+        <li>Add to home screen (it's a PWA)</li>
+        <li>Confirm you see today's jobs at <code>/tech</code></li>
+        <li>Tap one to read the brief &amp; access notes</li>
+        <li>Tap "Directions" &amp; "Call customer" — both work</li>
+        <li>Walk through checklist + photos + signature on a test job</li>
+        <li>Hit "Complete" &amp; download the generated PDF</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ SAFETY NOTE / CALLOUT -->
+<section>
+  <div class="callout">
+    <strong>If something looks wrong</strong> — overdue counts spiking, a job stuck in
+    a stage, a tech missing a job — open the job's slide-over and check the
+    <em>Activity log</em> at the bottom. Every stage change, assignment, and reminder is
+    recorded with a timestamp and the user who did it. There's almost always an answer
+    in there before you need to dig into the database.
+  </div>
+</section>
+
+<footer class="small" style="text-align:center; padding-top:12px; color:var(--ink-4);">
+  CitroTechnician · Internal field-ops tool · Confidential to CitroTech Corporation
+</footer>
+
+</div>
+</body>
+</html>
