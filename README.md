@@ -79,25 +79,28 @@ src/
 
 ## Build phases
 
-- ✅ **Phase 1 — Foundation** (this PR): scaffold, schema, auth, base layout,
-  seed data
-- **Phase 2 — Core data**: `/jobs`, `/pipeline` with dnd-kit Kanban, job detail
-  slide-over
-- **Phase 3 — Tech mobile**: PWA with offline queue, checklist/photos/signature
-  (moved up from Phase 5 per audit — riskiest part first)
-- **Phase 4 — Map + Calendar**: Google Maps with clustering + trip planner,
-  tech swim-lane calendar
-- **Phase 5 — Dashboard + Import**: full dashboard widgets + CSV import with
-  geocoding
-- **Phase 6 — Maintenance engine**: auto-create child jobs, Inngest cron,
-  task inbox
-- **Phase 7 — Salesforce sync + polish**: jsforce nightly pull, activity log UI
+- ✅ **Phase 1 — Foundation**: scaffold, schema, auth, base layout, seed data
+- ✅ **Phase 2 — Core data**: `/jobs`, `/pipeline` with dnd-kit Kanban, job
+  detail slide-over
+- ✅ **Phase 3 — Tech mobile**: role-gated `/tech` flow with checklist, photos,
+  signature, PDF service report on completion
+- ✅ **Phase 4 — Map + Calendar**: Google Maps with clustering + trip planner,
+  tech swim-lane calendar with drag-to-schedule
+- ✅ **Phase 5 — Dashboard + Import**: dashboard widgets (stats, needs-attention,
+  tech workload, upcoming week, activity feed) + CSV import with geocoding
+- ✅ **Phase 6 — Maintenance engine**: auto-spawn child cycles on completion,
+  Vercel Cron at 9am daily, T-90/60/30/overdue reminders, task inbox
+- ✅ **Phase 7 — Salesforce sync**: `jsforce` one-way nightly pull, manual
+  "Sync now," sync history with per-row error reporting
 
-See [SPEC.md](./SPEC.md) for the full product brief.
+See [SPEC.md](./SPEC.md) for the original product brief and
+[briefing/index.html](./briefing/index.html) for the team handoff doc.
 
 ---
 
 ## Related docs
 
+- [briefing/index.html](./briefing/index.html) — single-page team briefing
+  (open in a browser; print-friendly for PDF handouts)
 - [SPEC.md](./SPEC.md) — full product specification
 - [SETUP.md](./SETUP.md) — first-time setup (Supabase, Microsoft OAuth)
