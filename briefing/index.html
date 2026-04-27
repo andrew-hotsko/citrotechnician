@@ -66,15 +66,23 @@
     pointer-events: none;
   }
   .cover .logo {
-    display: inline-flex; align-items: center; gap: 8px;
+    display: inline-flex; align-items: center; gap: 10px;
     margin-bottom: 16px;
   }
   .cover .logo .mark {
-    height: 26px; width: 26px; border-radius: 6px;
+    height: 28px; width: 28px; border-radius: 7px;
     background: var(--orange);
-    color: #fff;
     display: grid; place-items: center;
-    font-weight: 700; font-size: 13px;
+  }
+  .cover .logo .mark svg { display: block; }
+  .cover .logo .wordmark { font-weight: 600; font-size: 14px; line-height: 1; }
+  .cover .logo .wordmark .citro { color: var(--orange); }
+  .cover .logo .wordmark .tech { color: #ffffff; }
+  .cover .logo .tag {
+    display: inline-block; margin-left: 4px;
+    font-size: 9px; letter-spacing: 0.18em;
+    color: #d4d4d4; text-transform: uppercase;
+    border-left: 1px solid #525252; padding-left: 8px;
   }
   .cover h1 { font-size: 30px; line-height: 1.1; }
   .cover .sub {
@@ -291,8 +299,13 @@
 <!-- ============================================================ COVER -->
 <header class="cover">
   <div class="logo">
-    <span class="mark">C</span>
-    <span style="font-weight:600; font-size:14px;">CitroTechnician</span>
+    <span class="mark" aria-hidden>
+      <svg viewBox="0 0 64 64" width="18" height="18">
+        <path d="M 13 8 H 51 Q 54 8 54 11 V 34 C 54 44 47 53 32 58 C 17 53 10 44 10 34 V 11 Q 10 8 13 8 Z" fill="#ffffff"/>
+      </svg>
+    </span>
+    <span class="wordmark"><span class="citro">Citro</span><span class="tech">Tech</span></span>
+    <span class="tag">Technician</span>
   </div>
   <h1>The CitroTech<br/>field-ops playbook.</h1>
   <p class="sub">

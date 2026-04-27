@@ -68,14 +68,20 @@ export default function LoginPage() {
             form-only, like Linear / Vercel / Notion auth screens. */}
         <div className="flex items-center gap-2.5 mb-8 justify-center">
           <div
-            className="h-8 w-8 rounded-lg grid place-items-center text-white text-[13px] font-semibold shadow-elev-1"
-            style={{ backgroundColor: "oklch(0.64 0.19 42)" }}
+            className="h-8 w-8 rounded-lg grid place-items-center shadow-elev-1"
+            style={{ backgroundColor: "#ea580c" }}
           >
-            C
+            <svg viewBox="0 0 64 64" className="h-[18px] w-[18px]" aria-hidden>
+              <path
+                d="M 13 8 H 51 Q 54 8 54 11 V 34 C 54 44 47 53 32 58 C 17 53 10 44 10 34 V 11 Q 10 8 13 8 Z"
+                fill="#ffffff"
+              />
+            </svg>
           </div>
           <div className="leading-tight">
-            <div className="text-[15px] font-semibold tracking-tight text-neutral-900">
-              CitroTech
+            <div className="text-[15px] font-semibold tracking-tight">
+              <span className="text-orange-600">Citro</span>
+              <span className="text-neutral-900">Tech</span>
             </div>
             <div className="text-[9px] font-semibold tracking-[0.14em] text-neutral-500 uppercase">
               Technician

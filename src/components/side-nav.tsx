@@ -51,16 +51,22 @@ export function SideNav({
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-2 px-4 h-14 border-b border-neutral-100">
+      <div className="flex items-center gap-2.5 px-4 h-14 border-b border-neutral-100">
         <div
-          className="h-7 w-7 rounded-lg grid place-items-center text-white text-[12px] font-semibold shadow-elev-1"
-          style={{ backgroundColor: "oklch(0.64 0.19 42)" }}
+          className="h-7 w-7 rounded-lg grid place-items-center shadow-elev-1"
+          style={{ backgroundColor: "#ea580c" }}
         >
-          C
+          <svg viewBox="0 0 64 64" className="h-4 w-4" aria-hidden>
+            <path
+              d="M 13 8 H 51 Q 54 8 54 11 V 34 C 54 44 47 53 32 58 C 17 53 10 44 10 34 V 11 Q 10 8 13 8 Z"
+              fill="#ffffff"
+            />
+          </svg>
         </div>
         <div className="leading-tight">
-          <div className="text-[14px] font-semibold tracking-tight text-neutral-900">
-            CitroTech
+          <div className="text-[14px] font-semibold tracking-tight">
+            <span className="text-orange-600">Citro</span>
+            <span className="text-neutral-900">Tech</span>
           </div>
           <div className="text-[9px] font-semibold tracking-[0.14em] text-neutral-500 uppercase">
             Technician
@@ -150,13 +156,19 @@ export function MobileNav({
           className="flex items-center gap-1.5 shrink-0"
         >
           <div
-            className="h-6 w-6 rounded-md grid place-items-center text-white text-[11px] font-semibold"
-            style={{ backgroundColor: "oklch(0.64 0.19 42)" }}
+            className="h-6 w-6 rounded-md grid place-items-center"
+            style={{ backgroundColor: "#ea580c" }}
           >
-            C
+            <svg viewBox="0 0 64 64" className="h-3.5 w-3.5" aria-hidden>
+              <path
+                d="M 13 8 H 51 Q 54 8 54 11 V 34 C 54 44 47 53 32 58 C 17 53 10 44 10 34 V 11 Q 10 8 13 8 Z"
+                fill="#ffffff"
+              />
+            </svg>
           </div>
           <span className="text-[13px] font-semibold tracking-tight">
-            CitroTech
+            <span className="text-orange-600">Citro</span>
+            <span className="text-neutral-900">Tech</span>
           </span>
         </Link>
 

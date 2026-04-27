@@ -1,0 +1,12 @@
+<!--
+  CitroTech shield — recreated from the wordmark glyph nested inside
+  the "o" of "Citro". Standalone monochrome variant: orange shield on
+  transparent. Use against light surfaces; pair with the rounded-square
+  white-on-orange variant in /public/icon.svg for tab/PWA icons.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="CitroTech shield">
+  <path
+    d="M 13 8 H 51 Q 54 8 54 11 V 34 C 54 44 47 53 32 58 C 17 53 10 44 10 34 V 11 Q 10 8 13 8 Z"
+    fill="#ea580c"
+  />
+</svg>
