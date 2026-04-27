@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CitroTech Jobs",
+  title: "CitroTechnician",
   description: "Internal job management for CitroTech field technicians",
   manifest: "/manifest.webmanifest",
   icons: {
@@ -24,15 +24,15 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
   },
   openGraph: {
-    title: "CitroTech Jobs",
+    title: "CitroTechnician",
     description: "Internal job management for CitroTech field technicians",
-    siteName: "CitroTech Jobs",
+    siteName: "CitroTechnician",
     type: "website",
     images: [{ url: "/icon-512.png", width: 512, height: 512, alt: "CitroTech" }],
   },
   twitter: {
     card: "summary",
-    title: "CitroTech Jobs",
+    title: "CitroTechnician",
     description: "Internal job management for CitroTech field technicians",
     images: ["/icon-512.png"],
   },

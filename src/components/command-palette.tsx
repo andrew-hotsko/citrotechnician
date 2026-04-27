@@ -150,7 +150,7 @@ export function CommandPalette({
       open={open}
       onOpenChange={setOpen}
       title="Command menu"
-      description="Jump to anywhere in CitroTech Jobs"
+      description="Jump to anywhere in CitroTechnician"
     >
       <CommandInput placeholder="Jump to a page, job, or tech..." />
       <CommandList>

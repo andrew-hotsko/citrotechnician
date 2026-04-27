@@ -1,6 +1,6 @@
-# CitroTech Jobs
+# CitroTechnician
 
-Internal job management system for CitroTech Corporation. Replaces spreadsheets,
+Internal field-ops tool for **CitroTech Corporation**. Replaces spreadsheets,
 text threads, and paper checklists for the post-sale lifecycle — from the moment
 a deal closes through recurring annual maintenance of wildfire defense
 applications (MFB-31, MFB-34, MFB-35-FM).

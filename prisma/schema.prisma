@@ -1,4 +1,4 @@
-// CitroTech Jobs — Prisma schema
+// CitroTechnician — Prisma schema
 // Data model per SPEC.md, revised with audit fixes:
 //  - Soft deletes on Job/Property/Customer/User
 //  - DateTime for scheduledStart/End (not String)

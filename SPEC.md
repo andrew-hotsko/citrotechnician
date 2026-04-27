@@ -1,4 +1,4 @@
-# CitroTech Jobs — Project Spec
+# CitroTechnician — Project Spec
 
 A build brief for Claude Code. Drop this into the project root as `SPEC.md` and reference it throughout the build.
 
@@ -586,4 +586,4 @@ Mix of stages. Three techs: Mike Rivera, Carlos Mendoza, Dave Thompson.
 
 Paste this as your first message in a fresh Claude Code session:
 
-> Initialize a new Next.js 16 project called `citrotech-jobs` with TypeScript, Tailwind, App Router, Prisma + Supabase, and Supabase Auth (Microsoft / Entra ID provider). Use `SPEC.md` in the project root as the source of truth. Start with Phase 1 (Foundation): project setup, Prisma schema from the spec, Supabase Auth with first-login user sync, base layout with TopNav, SlideOver primitive, and a seed script loading the 18 sample jobs from the spec. Stop after Phase 1 is working and let me review before continuing.
+> Initialize a new Next.js 16 project called `citrotechnician` with TypeScript, Tailwind, App Router, Prisma + Supabase, and Supabase Auth (Microsoft / Entra ID provider). Use `SPEC.md` in the project root as the source of truth. Start with Phase 1 (Foundation): project setup, Prisma schema from the spec, Supabase Auth with first-login user sync, base layout with TopNav, SlideOver primitive, and a seed script loading the 18 sample jobs from the spec. Stop after Phase 1 is working and let me review before continuing.

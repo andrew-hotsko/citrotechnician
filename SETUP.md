@@ -1,4 +1,4 @@
-# CitroTech Jobs — Setup
+# CitroTechnician — Setup
 
 One-time setup for running the app locally and provisioning external services.
 Phase 1 only requires **Supabase + Microsoft auth**. Google Maps and Salesforce
@@ -37,7 +37,7 @@ Lets CitroTech staff sign in with their `@citrotech.com` Microsoft account.
 
 **In Azure (https://portal.azure.com):**
 1. Azure Active Directory (Entra ID) → App registrations → **New registration**.
-2. Name: `CitroTech Jobs`.
+2. Name: `CitroTechnician`.
 3. Supported account types: **Accounts in this organizational directory only**
    (single tenant — restricts to CitroTech employees).
 4. Redirect URI: `Web` → `https://[project].supabase.co/auth/v1/callback`

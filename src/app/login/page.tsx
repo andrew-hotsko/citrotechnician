@@ -73,9 +73,14 @@ export default function LoginPage() {
           >
             C
           </div>
-          <span className="text-[15px] font-semibold tracking-tight text-neutral-900">
-            CitroTech Jobs
-          </span>
+          <div className="leading-tight">
+            <div className="text-[15px] font-semibold tracking-tight text-neutral-900">
+              CitroTech
+            </div>
+            <div className="text-[9px] font-semibold tracking-[0.14em] text-neutral-500 uppercase">
+              Technician
+            </div>
+          </div>
         </div>
 
         <div className="rounded-2xl border border-neutral-200/80 bg-white p-7 shadow-elev-2">

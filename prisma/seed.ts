@@ -232,7 +232,7 @@ const JOBS: JobSeed[] = [
 ];
 
 async function main() {
-  console.log("Seeding CitroTech Jobs…");
+  console.log("Seeding CitroTechnician…");
 
   // Techs
   for (const t of techs) {

@@ -58,9 +58,14 @@ export function SideNav({
         >
           C
         </div>
-        <span className="text-[14px] font-semibold tracking-tight text-neutral-900">
-          CitroTech
-        </span>
+        <div className="leading-tight">
+          <div className="text-[14px] font-semibold tracking-tight text-neutral-900">
+            CitroTech
+          </div>
+          <div className="text-[9px] font-semibold tracking-[0.14em] text-neutral-500 uppercase">
+            Technician
+          </div>
+        </div>
       </div>
 
       {/* Nav items */}
