@@ -979,6 +979,166 @@
   </div>
 </section>
 
+<!-- ============================================================ SIGN-IN GUIDE -->
+<section>
+  <div class="section-head">
+    <h2>Signing in · step by step</h2>
+    <span class="tag">read this once, then bookmark</span>
+  </div>
+
+  <!-- The big rules first -->
+  <div class="card" style="margin-bottom:12px; border-left:3px solid var(--orange);">
+    <p style="font-size:13px; margin:0 0 6px;">
+      <strong>Three rules that prevent 90% of sign-in problems.</strong>
+    </p>
+    <ol style="font-size:13px; padding-left:1.2em; margin:0;">
+      <li><strong>One URL only.</strong> Use the link your admin sent you. Bookmark it. Don't type "citrotech.com" — that's the company website, not the app.</li>
+      <li><strong>Work Google account, not personal.</strong> Sign in with your <code>@citrotech.com</code> Google account. Never your personal Gmail. If your phone is signed into both, the picker will show both — pick the work one.</li>
+      <li><strong>You must be invited first.</strong> If you've never logged in before, ask Andrew or the office manager to add you on <code>Settings → Team</code>. Until they do, the app will reject you politely.</li>
+    </ol>
+  </div>
+
+  <!-- Two flows side by side -->
+  <div class="grid-2" style="margin-bottom:12px;">
+
+    <!-- DESKTOP FLOW -->
+    <div class="card">
+      <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14.5px; margin-bottom:10px;">
+        🖥️&nbsp; Desktop · Ops Manager &amp; COO
+      </h3>
+
+      <ol style="font-size:13px; padding-left:1.2em; margin:0 0 12px;">
+        <li>Open the URL your admin sent. You'll land on the sign-in card.</li>
+        <li>Click <b>Continue with Google</b> (the only button on the page).</li>
+        <li>Google asks which account. Pick your <code>@citrotech.com</code> one.</li>
+        <li>You're in. The app sends you to <b>Dashboard</b> automatically.</li>
+      </ol>
+
+      <!-- Login screen mockup -->
+      <div class="mock" style="font-size:11px;">
+        <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span> &nbsp; citrotechnician.vercel.app/login</div>
+        <svg viewBox="0 0 380 220" style="width:100%; display:block;" role="img" aria-label="Login screen mockup">
+          <rect width="380" height="220" fill="#fafaf9"/>
+          <!-- Brand block -->
+          <g transform="translate(140,28)">
+            <rect width="28" height="28" rx="6" fill="#ea580c"/>
+            <path transform="translate(7 7) scale(0.21875)" d="M 13 8 H 51 Q 54 8 54 11 V 34 C 54 44 47 53 32 58 C 17 53 10 44 10 34 V 11 Q 10 8 13 8 Z" fill="#fff"/>
+            <text x="36" y="14" font-family="system-ui" font-size="13" font-weight="600" fill="#ea580c">Citro<tspan fill="#111827">Tech</tspan></text>
+            <text x="36" y="25" font-family="system-ui" font-size="7" font-weight="600" fill="#9ca3af" letter-spacing="2">TECHNICIAN</text>
+          </g>
+          <!-- Card -->
+          <g transform="translate(80,75)">
+            <rect width="220" height="120" rx="14" fill="#ffffff" stroke="#e5e7eb"/>
+            <text x="20" y="28" font-family="system-ui" font-size="14" font-weight="600" fill="#111827">Sign in</text>
+            <text x="20" y="44" font-family="system-ui" font-size="11" fill="#6b7280">Continue to your workspace.</text>
+            <!-- Button -->
+            <rect x="20" y="58" width="180" height="34" rx="8" fill="#111827"/>
+            <circle cx="38" cy="75" r="5" fill="#fff"/>
+            <text x="48" y="78" font-family="system-ui" font-size="11" font-weight="500" fill="#fff">Continue with Google</text>
+            <text x="20" y="108" font-family="system-ui" font-size="9" fill="#9ca3af">Access is restricted to authorized CitroTech team members.</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- MOBILE FLOW -->
+    <div class="card">
+      <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14.5px; margin-bottom:10px;">
+        📱&nbsp; Mobile · Field Tech (one-time setup)
+      </h3>
+
+      <ol style="font-size:13px; padding-left:1.2em; margin:0 0 12px;">
+        <li>Open the URL your office sent. <b>Use Safari (iPhone) or Chrome (Android)</b> — not the in-app browser inside Messages or email.</li>
+        <li>Tap <b>Continue with Google</b>. Pick your work account when Google asks.</li>
+        <li><b>Add to Home Screen</b> so it works like an app:
+          <ul style="margin:4px 0 0; padding-left:1em;">
+            <li><b>iPhone:</b> tap the share icon (square with arrow up) → <i>Add to Home Screen</i> → <i>Add</i>.</li>
+            <li><b>Android:</b> tap the three-dot menu → <i>Install app</i> or <i>Add to Home Screen</i>.</li>
+          </ul>
+        </li>
+        <li>Open the new icon from your home screen. From now on it goes straight to <b>Today's jobs</b> — no login screen, no browser bar.</li>
+      </ol>
+
+      <!-- Mobile screens mockup -->
+      <div class="mock" style="font-size:11px;">
+        <div class="bar"><span class="dot g"></span> &nbsp; iPhone — share menu</div>
+        <svg viewBox="0 0 380 160" style="width:100%; display:block;" role="img" aria-label="iOS Add to Home Screen mockup">
+          <rect width="380" height="160" fill="#fafaf9"/>
+          <!-- iPhone outline -->
+          <g transform="translate(20,12)">
+            <rect width="120" height="136" rx="14" fill="#ffffff" stroke="#d4d4d8" stroke-width="1.5"/>
+            <rect x="40" y="6" width="40" height="6" rx="3" fill="#111827"/>
+            <text x="14" y="34" font-family="system-ui" font-size="9" fill="#9ca3af">CitroTechnician</text>
+            <line x1="14" y1="40" x2="106" y2="40" stroke="#e5e7eb"/>
+            <!-- "tap share button" arrow -->
+            <text x="14" y="58" font-family="system-ui" font-size="8" fill="#6b7280">Tap ↗︎</text>
+            <rect x="46" y="120" width="28" height="14" rx="3" fill="#dbeafe" stroke="#3b82f6"/>
+            <text x="48" y="130" font-family="system-ui" font-size="6" font-weight="700" fill="#1e3a8a">SHARE</text>
+          </g>
+          <!-- arrow between -->
+          <path d="M 150 80 L 178 80" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#login-ar)"/>
+          <defs>
+            <marker id="login-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/>
+            </marker>
+          </defs>
+          <!-- Share sheet -->
+          <g transform="translate(180,12)">
+            <rect width="180" height="136" rx="10" fill="#ffffff" stroke="#d4d4d8"/>
+            <text x="14" y="22" font-family="system-ui" font-size="10" font-weight="600" fill="#111827">Share</text>
+            <line x1="14" y1="28" x2="166" y2="28" stroke="#f3f4f6"/>
+            <text x="14" y="44" font-family="system-ui" font-size="9" fill="#9ca3af">Copy</text>
+            <text x="14" y="60" font-family="system-ui" font-size="9" fill="#9ca3af">Add to Reading List</text>
+            <rect x="10" y="68" width="160" height="22" rx="6" fill="#fff7ed" stroke="#fed7aa"/>
+            <text x="18" y="83" font-family="system-ui" font-size="9" font-weight="700" fill="#7c2d12">＋ Add to Home Screen</text>
+            <text x="14" y="106" font-family="system-ui" font-size="9" fill="#9ca3af">Print</text>
+            <text x="14" y="122" font-family="system-ui" font-size="9" fill="#9ca3af">Save to Files</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Failure modes — what if it doesn't work -->
+  <div class="card">
+    <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14.5px; margin-bottom:10px;">
+      🛟&nbsp; If something doesn't work
+    </h3>
+    <table class="ref">
+      <thead>
+        <tr><th>What you see</th><th>What it means</th><th>What to do</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge" style="background:#fef3c7; color:#78350f;">"X isn't on the invite list"</span></td>
+          <td>Your email isn't in the team yet, or you signed in with the wrong Google account.</td>
+          <td>Confirm the email shown in the warning is your <b>work</b> address. If yes, ask Andrew or the office manager to add you on <code>Settings → Team</code>. If no, click <i>Continue with Google</i> again and pick a different account.</td>
+        </tr>
+        <tr>
+          <td><span class="badge" style="background:#fee2e2; color:#7f1d1d;">"Sign-in didn't complete"</span></td>
+          <td>Google or Supabase hiccupped mid-flow. Almost always transient.</td>
+          <td>Click <i>Continue with Google</i> once more. If it fails twice in a row, take a screenshot and ping the COO.</td>
+        </tr>
+        <tr>
+          <td>Google asks for a password you don't know</td>
+          <td>You picked the wrong Google account, or your work account hasn't been provisioned by IT yet.</td>
+          <td>On the Google chooser, tap <i>Use another account</i> and try the right one. If your work account doesn't exist yet, IT needs to set it up first — sign-in to the app can't help you.</td>
+        </tr>
+        <tr>
+          <td>Page loops back to /login</td>
+          <td>Cookies are blocked or you're in an in-app browser (Messages, Slack, Gmail).</td>
+          <td>Open the URL in a real browser — Safari on iPhone, Chrome on Android, Edge/Chrome on desktop. Don't tap the link inside Messages.</td>
+        </tr>
+        <tr>
+          <td>You're a tech but you land on Dashboard</td>
+          <td>Your role wasn't set to TECH yet.</td>
+          <td>Ask the COO to open <code>Settings → Team</code> and change your role to <b>Tech</b>. After that, sign out and back in — you'll land on <code>/tech</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
 <!-- ============================================================ ONBOARDING CHECKLISTS -->
 <section>
   <div class="section-head">
@@ -989,7 +1149,7 @@
     <div class="card">
       <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14px; margin-bottom:10px;">Ops Manager</h3>
       <ul class="checklist">
-        <li>Sign in at the URL with your <code>@citrotech.com</code> Microsoft account</li>
+        <li>Sign in (see <i>Signing in</i> above) &amp; bookmark the URL</li>
         <li>Open <code>/dashboard</code> &amp; recognize all four counters</li>
         <li>Open <code>/pipeline</code> &amp; drag one card to a new column</li>
         <li>Open one job &amp; log a phone call via "Communication"</li>
@@ -1012,10 +1172,10 @@
     <div class="card">
       <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14px; margin-bottom:10px;">Field Tech</h3>
       <ul class="checklist">
-        <li>Sign in on your phone — same Microsoft login</li>
-        <li>Add to home screen (it's a PWA)</li>
-        <li>Confirm you see today's jobs at <code>/tech</code></li>
-        <li>Tap one to read the brief &amp; access notes</li>
+        <li>Sign in on your phone (see <i>Signing in</i> above)</li>
+        <li>Add to home screen — required, not optional</li>
+        <li>Open the new home-screen icon &amp; confirm you land on <code>/tech</code></li>
+        <li>Tap one job to read the brief &amp; access notes</li>
         <li>Tap "Directions" &amp; "Call customer" — both work</li>
         <li>Walk through checklist + photos + signature on a test job</li>
         <li>Hit "Complete" &amp; download the generated PDF</li>
