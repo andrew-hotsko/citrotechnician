@@ -53,15 +53,20 @@ function DropdownMenuGroup({ ...props }: MenuPrimitive.Group.Props) {
   return <MenuPrimitive.Group data-slot="dropdown-menu-group" {...props} />
 }
 
+// Plain styled <div> rather than Base UI's MenuPrimitive.GroupLabel.
+// GroupLabel throws "MenuGroupRootContext is missing" unless wrapped in a
+// <Menu.Group>, but every callsite in this app uses Label as a standalone
+// section header inside a Content. A semantic <div> is the right primitive
+// for that role.
 function DropdownMenuLabel({
   className,
   inset,
   ...props
-}: MenuPrimitive.GroupLabel.Props & {
+}: React.HTMLAttributes<HTMLDivElement> & {
   inset?: boolean
 }) {
   return (
-    <MenuPrimitive.GroupLabel
+    <div
       data-slot="dropdown-menu-label"
       data-inset={inset}
       className={cn(
