@@ -313,7 +313,7 @@
     from a closed deal through every annual maintenance visit.
   </p>
   <div class="meta">
-    <span><strong>5 internal users</strong> · 1 ops manager, 1 COO, 3 techs</span>
+    <span><strong>5 internal users</strong> · 1 ops manager, 1 admin, 3 techs</span>
     <span><strong>~60 active jobs</strong> · 2-year maintenance cycle</span>
     <span><strong>Stack</strong> · Next.js · Supabase · Vercel</span>
   </div>
@@ -394,10 +394,10 @@
         </ul>
       </div>
     </div>
-    <!-- COO -->
+    <!-- Admin -->
     <div class="role">
       <span class="pill">🖥️ Desktop · Admin</span>
-      <h3>COO (Andrew)</h3>
+      <h3>Admin</h3>
       <div class="who">Oversight, pricing, escalations. Reads dashboards more than edits them.</div>
       <div class="does">
         <ul>
@@ -620,10 +620,10 @@
       </ol>
     </div>
 
-    <!-- COO weekly -->
+    <!-- Admin weekly -->
     <div class="card">
       <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14.5px; margin-bottom:10px;">
-        🖥️&nbsp; COO · weekly review
+        🖥️&nbsp; Admin · weekly review
       </h3>
       <ol style="font-size:13px; padding-left:1.1em;">
         <li><b>Dashboard → Needs Attention.</b> Anything red is overdue revenue. Shouldn't grow week to week.</li>
@@ -721,7 +721,7 @@
         <svg viewBox="0 0 560 220" style="width:100%; display:block;">
           <g font-family="system-ui">
             <text x="14" y="20" font-size="11" fill="#9ca3af">SATURDAY, APRIL 25</text>
-            <text x="14" y="40" font-size="15" font-weight="600" fill="#111827">Good to see you, Andrew.</text>
+            <text x="14" y="40" font-size="15" font-weight="600" fill="#111827">Good to see you, Sam.</text>
             <!-- stat cards -->
             <g transform="translate(14,56)">
               <rect width="125" height="48" rx="8" fill="#fff" stroke="#fecaca"/>
@@ -772,7 +772,7 @@
         <h3>Pipeline</h3>
         <span class="where">/pipeline</span>
         <p>The Kanban. Seven columns. Drag a card from <i>Outreach</i> → <i>Confirmed</i> after the customer says yes. Click a card to open the slide-over with phone numbers, notes, history.</p>
-        <p class="who-can"><b>Who:</b> Ops Manager &amp; COO can drag. Viewers can read.</p>
+        <p class="who-can"><b>Who:</b> Ops Manager &amp; Admin can drag. Viewers can read.</p>
       </div>
       <div class="mock">
         <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span> &nbsp; Pipeline · 23 jobs</div>
@@ -844,7 +844,7 @@
         <h3>Map · trip planner</h3>
         <span class="where">/map</span>
         <p>California pinned by status. Toggle <b>Plan a trip</b>, click pins to batch-select, then "Schedule as trip" assigns the tech and dates in one move. Saves the round-trip we'd otherwise drive twice.</p>
-        <p class="who-can"><b>Who:</b> Ops Manager &amp; COO can plan. Techs see read-only.</p>
+        <p class="who-can"><b>Who:</b> Ops Manager &amp; Admin can plan. Techs see read-only.</p>
       </div>
       <div class="mock">
         <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span> &nbsp; Map · trip mode on · 4 selected</div>
@@ -958,7 +958,7 @@
         <tr><th>Role</th><th>Office screens</th><th>Tech screens</th><th>Settings</th><th>Drag &amp; edit</th></tr>
       </thead>
       <tbody>
-        <tr><td><b>Admin</b> (COO)</td><td>Yes</td><td>Yes (testing)</td><td>Yes</td><td>Yes</td></tr>
+        <tr><td><b>Admin</b></td><td>Yes</td><td>Yes (testing)</td><td>Yes</td><td>Yes</td></tr>
         <tr><td><b>Ops Manager</b></td><td>Yes</td><td>—</td><td>Yes</td><td>Yes</td></tr>
         <tr><td><b>Tech</b></td><td>—</td><td>Yes (own jobs)</td><td>—</td><td>Their own jobs only</td></tr>
         <tr><td><b>Viewer</b></td><td>Read-only</td><td>—</td><td>—</td><td>—</td></tr>
@@ -994,7 +994,7 @@
     <ol style="font-size:13px; padding-left:1.2em; margin:0;">
       <li><strong>One URL only.</strong> Use the link your admin sent you. Bookmark it. Don't type "citrotech.com" — that's the company website, not the app.</li>
       <li><strong>Work Google account, not personal.</strong> Sign in with your <code>@citrotech.com</code> Google account. Never your personal Gmail. If your phone is signed into both, the picker will show both — pick the work one.</li>
-      <li><strong>You must be invited first.</strong> If you've never logged in before, ask Andrew or the office manager to add you on <code>Settings → Team</code>. Until they do, the app will reject you politely.</li>
+      <li><strong>You must be invited first.</strong> If you've never logged in before, ask the admin or the office manager to add you on <code>Settings → Team</code>. Until they do, the app will reject you politely.</li>
     </ol>
   </div>
 
@@ -1004,7 +1004,7 @@
     <!-- DESKTOP FLOW -->
     <div class="card">
       <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14.5px; margin-bottom:10px;">
-        🖥️&nbsp; Desktop · Ops Manager &amp; COO
+        🖥️&nbsp; Desktop · Ops Manager &amp; Admin
       </h3>
 
       <ol style="font-size:13px; padding-left:1.2em; margin:0 0 12px;">
@@ -1112,12 +1112,12 @@
         <tr>
           <td><span class="badge" style="background:#fef3c7; color:#78350f;">"X isn't on the invite list"</span></td>
           <td>Your email isn't in the team yet, or you signed in with the wrong Google account.</td>
-          <td>Confirm the email shown in the warning is your <b>work</b> address. If yes, ask Andrew or the office manager to add you on <code>Settings → Team</code>. If no, click <i>Continue with Google</i> again and pick a different account.</td>
+          <td>Confirm the email shown in the warning is your <b>work</b> address. If yes, ask the admin or the office manager to add you on <code>Settings → Team</code>. If no, click <i>Continue with Google</i> again and pick a different account.</td>
         </tr>
         <tr>
           <td><span class="badge" style="background:#fee2e2; color:#7f1d1d;">"Sign-in didn't complete"</span></td>
           <td>Google or Supabase hiccupped mid-flow. Almost always transient.</td>
-          <td>Click <i>Continue with Google</i> once more. If it fails twice in a row, take a screenshot and ping the COO.</td>
+          <td>Click <i>Continue with Google</i> once more. If it fails twice in a row, take a screenshot and ping your admin.</td>
         </tr>
         <tr>
           <td>Google asks for a password you don't know</td>
@@ -1132,7 +1132,7 @@
         <tr>
           <td>You're a tech but you land on Dashboard</td>
           <td>Your role wasn't set to TECH yet.</td>
-          <td>Ask the COO to open <code>Settings → Team</code> and change your role to <b>Tech</b>. After that, sign out and back in — you'll land on <code>/tech</code>.</td>
+          <td>Ask the admin to open <code>Settings → Team</code> and change your role to <b>Tech</b>. After that, sign out and back in — you'll land on <code>/tech</code>.</td>
         </tr>
       </tbody>
     </table>
@@ -1159,7 +1159,7 @@
       </ul>
     </div>
     <div class="card">
-      <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14px; margin-bottom:10px;">COO</h3>
+      <h3 style="color:var(--ink); text-transform:none; letter-spacing:-0.01em; font-size:14px; margin-bottom:10px;">Admin</h3>
       <ul class="checklist">
         <li>Verify your role shows ADMIN in the side nav</li>
         <li>Walk the dashboard with the Ops Manager</li>
