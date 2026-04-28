@@ -19,7 +19,8 @@ export type ImportField =
   | "customerPhone"
   | "region"
   | "cycleIndex"
-  | "cyclesPlanned";
+  | "cyclesPlanned"
+  | "officeNotes";
 
 export const FIELD_META: Record<
   ImportField,
@@ -41,6 +42,7 @@ export const FIELD_META: Record<
   region:           { label: "Region", required: false, hint: "NORCAL / SOCAL / OTHER; inferred from state if blank" },
   cycleIndex:       { label: "Cycle index", required: false, hint: "0 = install, 1 = year 1, 2 = year 2 (default 0)" },
   cyclesPlanned:    { label: "Cycles planned", required: false, hint: "total annuals after install (default 2)" },
+  officeNotes:      { label: "Office notes", required: false, hint: "free-form notes shown on the job detail" },
 };
 
 export const FIELD_ORDER: ImportField[] = [
@@ -60,6 +62,7 @@ export const FIELD_ORDER: ImportField[] = [
   "region",
   "cycleIndex",
   "cyclesPlanned",
+  "officeNotes",
 ];
 
 /** Canonicalize a CSV header for matching (lowercase, strip spaces/underscores/hyphens). */
@@ -85,6 +88,7 @@ const ALIASES: Record<ImportField, string[]> = {
   region:          ["region", "area", "zone"],
   cycleIndex:      ["cycle", "cycleindex", "year", "yearnumber", "cycleposition"],
   cyclesPlanned:   ["cyclesplanned", "totalcycles", "agreementyears", "agreementlength"],
+  officeNotes:     ["officenotes", "notes", "officenote", "internalnotes", "comments", "note", "remarks"],
 };
 
 /**
@@ -209,6 +213,7 @@ export type ParsedRow = {
     region: "NORCAL" | "SOCAL" | "OTHER";
     cycleIndex: number;
     cyclesPlanned: number;
+    officeNotes: string;
   }>;
   errors: string[];
 };
@@ -243,6 +248,7 @@ export function parseRow(
     "city",
     "customerEmail",
     "customerPhone",
+    "officeNotes",
   ];
   for (const f of stringFields) {
     const v = get(f);

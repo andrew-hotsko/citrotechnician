@@ -221,6 +221,7 @@ export async function commitImport(
             maintenanceIntervalMonths: interval,
             cycleIndex: csvCycleIndex,
             cyclesPlanned: csvCyclesPlanned,
+            officeNotes: v.officeNotes,
             checklistItems: tpl
               ? {
                   create: tpl.items.map((i) => ({
