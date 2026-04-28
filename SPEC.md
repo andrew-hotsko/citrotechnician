@@ -60,7 +60,7 @@ Today, scheduling happens in spreadsheets and group texts. That doesn't scale. W
 | Styling | Tailwind CSS |
 | Database | Supabase (PostgreSQL) |
 | ORM | Prisma |
-| Auth | Supabase Auth (Microsoft / Entra ID) |
+| Auth | Supabase Auth (Google OAuth) |
 | Hosting | Vercel |
 | File storage | Supabase Storage |
 | Maps | Google Maps JavaScript API |
@@ -456,10 +456,13 @@ User rows are upserted from the Supabase session on first request via
 - Download error CSV for re-upload
 
 **Auth & Roles**
-- Supabase Auth with the Microsoft (Entra ID) provider, restricted to the
-  CitroTech tenant. First sign-in upserts the local `User` row keyed by
-  `supabaseUserId`. Email gates: only addresses listed in `ADMIN_EMAILS` /
-  `ALLOWED_EMAILS` env vars can sign in.
+- Supabase Auth with the Google OAuth provider. First sign-in upserts the
+  local `User` row keyed by `supabaseUserId`. Email gates: a sign-in is
+  accepted only if the email is on the `ADMIN_EMAILS` env var **or** the
+  user already has an active `User` row (added by an existing admin from
+  `Settings → Team`). Everyone else bounces back to `/login` with a "not
+  invited" message — no User row is created. Gating is enforced in
+  `src/app/auth/callback/route.ts`.
 - Route-level guards:
   - `/tech/*` → TECH, ADMIN
   - `/settings/*` → ADMIN, OPS_MANAGER
@@ -510,7 +513,7 @@ User rows are upserted from the Supabase session on first request via
 **Phase 1 — Foundation**
 - Next.js 16 + TypeScript + Tailwind scaffold
 - Prisma schema + Supabase Postgres
-- Supabase Auth (Microsoft / Entra ID) with first-login user sync
+- Supabase Auth (Google OAuth) with first-login user sync
 - Top nav + SlideOver primitive
 - Seed script with 18 sample jobs (use the prototype data)
 - **Stop for review before Phase 2**
@@ -586,4 +589,4 @@ Mix of stages. Three techs: Mike Rivera, Carlos Mendoza, Dave Thompson.
 
 Paste this as your first message in a fresh Claude Code session:
 
-> Initialize a new Next.js 16 project called `citrotechnician` with TypeScript, Tailwind, App Router, Prisma + Supabase, and Supabase Auth (Microsoft / Entra ID provider). Use `SPEC.md` in the project root as the source of truth. Start with Phase 1 (Foundation): project setup, Prisma schema from the spec, Supabase Auth with first-login user sync, base layout with TopNav, SlideOver primitive, and a seed script loading the 18 sample jobs from the spec. Stop after Phase 1 is working and let me review before continuing.
+> Initialize a new Next.js 16 project called `citrotechnician` with TypeScript, Tailwind, App Router, Prisma + Supabase, and Supabase Auth (Google OAuth provider). Use `SPEC.md` in the project root as the source of truth. Start with Phase 1 (Foundation): project setup, Prisma schema from the spec, Supabase Auth with first-login user sync, base layout with TopNav, SlideOver primitive, and a seed script loading the 18 sample jobs from the spec. Stop after Phase 1 is working and let me review before continuing.

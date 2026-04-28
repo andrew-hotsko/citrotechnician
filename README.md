@@ -18,7 +18,7 @@ technicians (mobile).
 | Styling | Tailwind CSS v4 + shadcn/ui (Base UI primitives) |
 | Database | Supabase (PostgreSQL) |
 | ORM | Prisma 7 with `@prisma/adapter-pg` |
-| Auth | Supabase Auth (Microsoft / Entra ID provider) |
+| Auth | Supabase Auth (Google OAuth provider) |
 | Storage | Supabase Storage |
 | Hosting | Vercel |
 | Maps | Google Maps JavaScript API *(Phase 3)* |
@@ -41,7 +41,7 @@ npm run dev
 ```
 
 Open http://localhost:3000. See [SETUP.md](./SETUP.md) for the full setup guide
-including Microsoft OAuth configuration.
+including Google OAuth configuration.
 
 ---
 
@@ -103,4 +103,4 @@ See [SPEC.md](./SPEC.md) for the original product brief and
 - [briefing/index.html](./briefing/index.html) — single-page team briefing
   (open in a browser; print-friendly for PDF handouts)
 - [SPEC.md](./SPEC.md) — full product specification
-- [SETUP.md](./SETUP.md) — first-time setup (Supabase, Microsoft OAuth)
+- [SETUP.md](./SETUP.md) — first-time setup (Supabase, Google OAuth)

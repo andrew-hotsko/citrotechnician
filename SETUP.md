@@ -1,7 +1,7 @@
 # CitroTechnician — Setup
 
 One-time setup for running the app locally and provisioning external services.
-Phase 1 only requires **Supabase + Microsoft auth**. Google Maps and Salesforce
+Phase 1 only requires **Supabase + Google auth**. Google Maps and Salesforce
 are added in later phases.
 
 ---
@@ -31,27 +31,44 @@ are added in later phases.
 
 ---
 
-## 2. Microsoft (Entra ID) OAuth
+## 2. Google OAuth
 
-Lets CitroTech staff sign in with their `@citrotech.com` Microsoft account.
+Lets CitroTech staff sign in with their `@citrotech.com` Google
+account (Workspace, or any Google identity an admin pre-invites).
 
-**In Azure (https://portal.azure.com):**
-1. Azure Active Directory (Entra ID) → App registrations → **New registration**.
-2. Name: `CitroTechnician`.
-3. Supported account types: **Accounts in this organizational directory only**
-   (single tenant — restricts to CitroTech employees).
-4. Redirect URI: `Web` → `https://[project].supabase.co/auth/v1/callback`
-   (use your Supabase project URL).
-5. Save. Copy the **Application (client) ID** and **Directory (tenant) ID**.
-6. Certificates & secrets → **New client secret** → copy the value immediately.
+**In Google Cloud Console (https://console.cloud.google.com):**
+1. Create or reuse a project.
+2. **APIs & Services → OAuth consent screen** → set up:
+   - User type: **Internal** if your CitroTech Google Workspace org
+     is the project owner (auto-restricts sign-in to org members).
+     **External** otherwise — access is gated downstream by the
+     allowlist (see below), so this is safe.
+   - App name: `CitroTechnician`
+   - Support email: an admin address.
+3. **APIs & Services → Credentials → Create credentials → OAuth client ID:**
+   - Application type: **Web application**
+   - Name: `CitroTechnician`
+   - Authorized redirect URI:
+     `https://[project].supabase.co/auth/v1/callback`
+     (use your Supabase project URL).
+4. Save. Copy the **Client ID** and **Client secret**.
 
 **In Supabase:**
-1. Authentication → Providers → **Azure** → toggle on.
+1. Authentication → Providers → **Google** → toggle on.
 2. Paste:
    - Client ID
    - Client Secret
-   - Azure Tenant ID (this is what restricts login to the CitroTech tenant)
 3. Save.
+
+**Email allowlist — the actual access gate:**
+Sign-in is technically open at the provider level. The app-side
+gate lives in `src/app/auth/callback/route.ts` and lets a user
+through only if their email is on the `ADMIN_EMAILS` env var
+**or** they already have an active `User` row (added by an
+existing admin from `Settings → Team`). Everyone else bounces back
+to `/login` with a "not invited" message — no User row is created.
+This means you don't need a domain restriction at the provider
+level; you control access by curating the team list.
 
 ---
 
@@ -100,7 +117,7 @@ npm run dev            # start the app at http://localhost:3000
 ## 6. First login
 
 1. Visit http://localhost:3000 → redirects to `/login`.
-2. Click **Sign in with Microsoft** → authenticate.
+2. Click **Continue with Google** → authenticate.
 3. You're redirected back. On first login, your User row is created; the email
    listed in `ADMIN_EMAILS` gets `ADMIN` role automatically. Everyone else
    defaults to `VIEWER` — an admin can promote them via Prisma Studio
@@ -128,9 +145,15 @@ npm run dev            # start the app at http://localhost:3000
 **"DATABASE_URL is not set"** — check that `.env.local` exists and has the
 values from Supabase. Restart `npm run dev`.
 
-**"Invalid login: email not confirmed"** — Supabase sometimes requires email
-confirmation for the Microsoft provider. In Supabase → Authentication →
-Providers → Azure, ensure "Skip nonce check" is off and retry.
+**"X isn't on the invite list" after sign-in** — your email isn't on the
+`ADMIN_EMAILS` env var **and** doesn't exist as an active `User` row. Add
+your email to `ADMIN_EMAILS` in `.env.local` (and on Vercel for production)
+to bootstrap as admin, or have an existing admin add you from
+`Settings → Team`.
+
+**Sign-in loops back to /login** — usually a cookie / in-app-browser issue.
+Open the URL in a real browser (Safari on iPhone, Chrome on Android,
+Edge/Chrome on desktop), not a webview inside Messages/Slack/Gmail.
 
 **Login succeeds but the app says "Not authenticated"** — the middleware is
 likely not refreshing the session. Confirm that `src/middleware.ts` exists and
