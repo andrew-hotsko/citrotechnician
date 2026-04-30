@@ -231,7 +231,6 @@ export async function runSync(options: RunOptions): Promise<RunResult> {
               latitude: geo.value.latitude,
               longitude: geo.value.longitude,
               region: pickRegion(state, zip),
-              sqft: 0, // unknown from SF; ops can fill later if needed
               lastSyncedAt: new Date(),
             },
           });
@@ -269,7 +268,6 @@ export async function runSync(options: RunOptions): Promise<RunResult> {
             stage: "UPCOMING",
             type: "INITIAL_APPLICATION",
             product,
-            sqftTreated: 0,
             contractValue: opp.Amount ?? undefined,
             lastServiceDate: closeDate,
             dueDate,

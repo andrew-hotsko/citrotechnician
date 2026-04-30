@@ -51,11 +51,8 @@ export default async function TechJobBrief({
         <p className="text-[13px] text-neutral-600 mt-0.5">
           {job.property.address}, {job.property.city}, {job.property.state}
         </p>
-        <div className="mt-3 flex items-center justify-between">
+        <div className="mt-3 flex items-center">
           <StageBadge stage={job.stage} />
-          <span className="text-[11px] text-neutral-500">
-            {job.sqftTreated.toLocaleString()} sq ft
-          </span>
         </div>
 
         <div className="grid grid-cols-2 gap-2 mt-4">

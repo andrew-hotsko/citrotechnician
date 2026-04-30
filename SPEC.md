@@ -131,7 +131,6 @@ model Property {
   latitude      Float
   longitude     Float
   region        Region
-  sqft          Int?
   accessNotes   String?
   siteNotes     String?
 
@@ -158,7 +157,6 @@ model Job {
   stage           JobStage  @default(UPCOMING)
   type            JobType   @default(MAINTENANCE)
   product         Product
-  sqftTreated     Int
   contractValue   Decimal?
 
   assignedTechId  String?
@@ -407,7 +405,7 @@ User rows are upserted from the Supabase session on first request via
 
 **Job Detail** (slide-over + `/jobs/[id]`)
 - Header: job number, region badge, stage badge, property name, address, action buttons (Schedule / mark in progress / complete)
-- Key facts grid: customer, phone, product, sqft, last service, next due, contract value, assigned tech
+- Key facts grid: customer, phone, product, last service, next due, contract value, assigned tech
 - Sections: Service history, Pre-job checklist, Documents, Photos, Activity log
 - Stage dropdown writes to ActivityLog automatically
 - Edit mode for ADMIN/OPS_MANAGER; read-only for VIEWER

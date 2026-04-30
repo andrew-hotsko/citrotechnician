@@ -154,7 +154,6 @@ export type CreateJobInput = {
 
   // Job.
   product: Product;
-  sqft?: number;          // hidden in UI; DB column kept at 0 when unset.
   contractValue?: number; // hidden in UI; retained in schema for future use.
   lastServiceDate?: string; // ISO yyyy-mm-dd. Omit for brand-new installs.
   intervalMonths?: number; // default 12
@@ -193,10 +192,6 @@ export async function createJob(input: CreateJobInput): Promise<CreateJobResult>
   if (!propertyName) return { ok: false, error: "Property name is required", field: "propertyName" };
   if (!address) return { ok: false, error: "Street address is required", field: "address" };
   if (!city) return { ok: false, error: "City is required", field: "city" };
-
-  // sqft is hidden in the UI now but the column is still non-null; default
-  // to 0 when not provided. Callers can still pass it if they want.
-  const sqft = Number.isFinite(input.sqft) && input.sqft! > 0 ? input.sqft! : 0;
 
   const interval = Number.isFinite(input.intervalMonths) && input.intervalMonths!
     ? Math.max(1, Math.floor(input.intervalMonths!))
@@ -285,7 +280,6 @@ export async function createJob(input: CreateJobInput): Promise<CreateJobResult>
           latitude: geo.value.latitude,
           longitude: geo.value.longitude,
           region,
-          sqft,
         },
       });
 
@@ -313,7 +307,6 @@ export async function createJob(input: CreateJobInput): Promise<CreateJobResult>
           // imports default to MAINTENANCE.
           type: cycleIndex === 0 ? "INITIAL_APPLICATION" : "MAINTENANCE",
           product: input.product,
-          sqftTreated: sqft,
           contractValue: input.contractValue,
           lastServiceDate: lastServiceDate ?? undefined,
           dueDate,
@@ -405,7 +398,6 @@ export type UpdateJobDetailsInput = {
     state?: string;
     zip?: string | null;
     region?: Region;
-    sqft?: number;
     accessNotes?: string | null;
     siteNotes?: string | null;
   };
@@ -413,7 +405,6 @@ export type UpdateJobDetailsInput = {
   // reminder schedule for any reminder that hasn't fired yet.
   job?: {
     product?: Product;
-    sqftTreated?: number;
     contractValue?: number | null;
     lastServiceDate?: string | null; // ISO date
     dueDate?: string; // ISO date
@@ -559,10 +550,6 @@ export async function updateJobDetails(
             state: propIn.state?.trim().toUpperCase() || undefined,
             zip: propIn.zip === null ? null : propIn.zip?.trim() || undefined,
             region: propIn.region ?? undefined,
-            sqft:
-              typeof propIn.sqft === "number" && propIn.sqft > 0
-                ? propIn.sqft
-                : undefined,
             accessNotes:
               propIn.accessNotes === null
                 ? null
@@ -582,10 +569,6 @@ export async function updateJobDetails(
           where: { id: jobId },
           data: {
             product: j.product ?? undefined,
-            sqftTreated:
-              typeof j.sqftTreated === "number" && j.sqftTreated > 0
-                ? j.sqftTreated
-                : undefined,
             contractValue:
               j.contractValue === null
                 ? null

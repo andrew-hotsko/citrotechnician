@@ -45,7 +45,6 @@ export async function renderServiceReportForJob(
     jobNumber: job.jobNumber,
     completedAt: job.completedAt,
     product: job.product,
-    sqftTreated: job.sqftTreated,
     contractValue: job.contractValue ? Number(job.contractValue) : null,
     property: {
       name: job.property.name,

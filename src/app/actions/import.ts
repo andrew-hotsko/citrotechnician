@@ -139,7 +139,6 @@ export async function commitImport(
       !v.address ||
       !v.city ||
       !v.product ||
-      !v.sqft ||
       !v.lastServiceDate ||
       typeof v.latitude !== "number" ||
       typeof v.longitude !== "number"
@@ -180,7 +179,6 @@ export async function commitImport(
             latitude: v.latitude!,
             longitude: v.longitude!,
             region: v.region ?? "OTHER",
-            sqft: v.sqft,
           },
         });
 
@@ -214,7 +212,6 @@ export async function commitImport(
             // cycle 0 with no prior service = brand-new install
             type: csvCycleIndex === 0 ? "INITIAL_APPLICATION" : "MAINTENANCE",
             product: v.product!,
-            sqftTreated: v.sqft!,
             contractValue: v.contractValue,
             lastServiceDate: v.lastServiceDate,
             dueDate,

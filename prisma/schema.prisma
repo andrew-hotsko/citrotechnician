@@ -87,7 +87,6 @@ model Property {
   latitude    Float
   longitude   Float
   region      Region
-  sqft        Int?
   accessNotes String?
   siteNotes   String?
 
@@ -121,7 +120,6 @@ model Job {
   stage         JobStage @default(UPCOMING)
   type          JobType  @default(MAINTENANCE)
   product       Product
-  sqftTreated   Int
   contractValue Decimal?
 
   assignedTechId String?

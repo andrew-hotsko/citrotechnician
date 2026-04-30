@@ -20,7 +20,6 @@ export type ServiceReportInput = {
   jobNumber: string;
   completedAt: Date;
   product: "SYSTEM" | "SPRAY" | "MFB_31" | "MFB_34" | "MFB_35_FM";
-  sqftTreated: number;
   contractValue: number | null;
   property: {
     name: string;
@@ -320,8 +319,7 @@ export function ServiceReport({ data }: { data: ServiceReportInput }) {
           </Text>
           <Text style={styles.heroTitle}>{data.property.name}</Text>
           <Text style={styles.heroSubtitle}>
-            {PRODUCT_LABEL[data.product]} wildfire defense application ·{" "}
-            {data.sqftTreated.toLocaleString()} sq ft treated
+            {PRODUCT_LABEL[data.product]} wildfire defense application
           </Text>
         </View>
 
@@ -356,10 +354,6 @@ export function ServiceReport({ data }: { data: ServiceReportInput }) {
         <Text style={styles.sectionLabel}>Service details</Text>
         <View style={styles.factsGrid}>
           <Fact label="Product" value={PRODUCT_LABEL[data.product]} />
-          <Fact
-            label="Square feet"
-            value={data.sqftTreated.toLocaleString()}
-          />
           <Fact label="Contract value" value={fmtMoney(data.contractValue)} />
           <Fact
             label="Technician"

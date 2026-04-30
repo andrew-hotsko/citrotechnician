@@ -77,7 +77,7 @@ export function EditJobDialog({ job }: { job: JobDetail }) {
     job.property.accessNotes ?? "",
   );
   const [siteNotes, setSiteNotes] = useState(job.property.siteNotes ?? "");
-  // Job (sqft + contractValue intentionally hidden from the UI now)
+  // Job (contractValue intentionally hidden from the UI)
   const [product, setProduct] = useState<Product>(job.product);
   const [lastServiceDate, setLastServiceDate] = useState<string>(
     toDateInput(job.lastServiceDate),

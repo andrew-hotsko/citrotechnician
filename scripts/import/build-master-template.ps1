@@ -10,9 +10,9 @@
       - "Instructions" sheet explaining each column and the workflow.
       - "Lookups" sheet (hidden) backing the data-validation dropdowns.
 
-    Cells that the source can't provide (Product, Sq ft, install date for
-    pending rows, Cycle index for repeats) are highlighted yellow so the
-    team can see at a glance what still needs filling.
+    Cells that the source can't provide (Product, install date for pending
+    rows, Cycle index for repeats) are highlighted yellow so the team can
+    see at a glance what still needs filling.
 
     Header coverage matches src/lib/csv-import.ts FIELD_ORDER, so every
     import field — including Cycle index / Cycles planned (1st-year /
@@ -224,7 +224,6 @@ try {
             state            = if ($parsed.state) { $parsed.state } else { 'CA' }
             zip              = $parsed.zip
             product          = ''                 # team fills: System / Spray
-            sqft             = $null              # team fills
             contractValue    = $value
             lastServiceDate  = $svcDate           # null when install pending
             intervalMonths   = 12
@@ -276,7 +275,6 @@ $cols = @(
     @{ field = 'state';           header = 'State';               req = $false; width = 7;  format = '@'; validation = 'state' }
     @{ field = 'zip';             header = 'ZIP';                 req = $false; width = 9;  format = '@' }
     @{ field = 'product';         header = 'Product';             req = $true;  width = 11; format = '@'; validation = 'product' }
-    @{ field = 'sqft';            header = 'Sq ft';               req = $true;  width = 10; format = '#,##0' }
     @{ field = 'contractValue';   header = 'Contract value';      req = $false; width = 14; format = '$#,##0' }
     @{ field = 'lastServiceDate'; header = 'Last service date';   req = $true;  width = 14; format = 'yyyy-mm-dd' }
     @{ field = 'intervalMonths';  header = 'Interval (months)';   req = $false; width = 9;  format = '0' }
@@ -298,7 +296,6 @@ $cols = @(
 $headerComments = @{
     'lastServiceDate'  = "The date of the most recent COMPLETED visit at this property — install or last annual.`r`n`r`nLeave blank if the install hasn't happened yet (we'll fill it once it does)."
     'product'          = "System or Spray. Required for every row."
-    'sqft'             = "Square footage being treated. Required."
     'cycleIndex'       = "What's been done at this property so far?`r`n`r`n  0 = install only (or install pending)`r`n  1 = Year 1 annual is the most recent`r`n  2 = Year 2 annual is the most recent`r`n  3 = Year 3, etc.`r`n`r`nDefault is 0. Bump only if the property is mid-agreement and at least one annual has happened. See the Instructions tab for the decision tree."
     'cyclesPlanned'    = "How many annual inspections did the customer sign up for in their contract?`r`n`r`n  2 = standard 2-year (default)`r`n  1 = 1-year`r`n  3 = 3-year`r`n`r`nThe source 'Terms' column was mapped automatically: '2 year' -> 2."
     'sourceRow'        = "The row number in the original 'System Master List.xlsx'.`r`n`r`nUse it to cross-check against the source spreadsheet during verification. Not imported — for your reference only."
@@ -406,7 +403,6 @@ try {
         @{ text = 'Address *            — street only ("1234 Main St"). No city/state/zip in this cell.'; style = 'body' }
         @{ text = 'City *               — city name only.'; style = 'body' }
         @{ text = 'Product *            — System or Spray. Use the dropdown.'; style = 'body' }
-        @{ text = 'Sq ft *              — square footage being treated. Numeric, no commas needed.'; style = 'body' }
         @{ text = 'Last service date *  — most recent COMPLETED visit (install or last annual). Leave blank for install-pending rows.'; style = 'body' }
         @{ text = ''; style = 'spacer' }
 
@@ -535,7 +531,7 @@ try {
         # so we batch each column's gaps in one Range op.
         for ($c = 0; $c -lt $cols.Count; $c++) {
             $field = $cols[$c].field
-            if ($field -ne 'product' -and $field -ne 'sqft' -and $field -ne 'lastServiceDate' -and $field -ne 'cycleIndex') { continue }
+            if ($field -ne 'product' -and $field -ne 'lastServiceDate' -and $field -ne 'cycleIndex') { continue }
             $colIdx = $c + 1
             $colLetter = ($dataSheet.Cells.Item(1, $colIdx).Address(0,0) -replace '\d','')
             for ($i = 0; $i -lt $rowCount; $i++) {
@@ -543,7 +539,6 @@ try {
                 $val = $rows[$i].PSObject.Properties[$field].Value
                 switch ($field) {
                     'product'         { if (-not $val) { $needs = $true } }
-                    'sqft'            { if (-not $val) { $needs = $true } }
                     'lastServiceDate' { if (-not $val) { $needs = $true } }
                     'cycleIndex'      {
                         # cycleIndex 0 is fine when install hasn't happened.
@@ -622,7 +617,6 @@ try {
 # ---------- Report --------------------------------------------------------
 
 $missingProduct = ($rows | Where-Object { -not $_.product }).Count
-$missingSqft    = ($rows | Where-Object { -not $_.sqft }).Count
 $missingDate    = ($rows | Where-Object { -not $_.lastServiceDate }).Count
 $missingCity    = ($rows | Where-Object { -not $_.city }).Count
 $missingState   = ($rows | Where-Object { -not $_.state -or $_.state -eq 'CA' }).Count
@@ -640,7 +634,6 @@ Write-Host "    Install pending (N)       : $installPending"
 Write-Host ""
 Write-Host "  Cells highlighted yellow (team must fill):" -ForegroundColor Yellow
 Write-Host "    Product                   : $missingProduct"
-Write-Host "    Sq ft                     : $missingSqft"
 Write-Host "    Last service date         : $missingDate (mostly install-pending)"
 Write-Host ""
 Write-Host "  Next steps:" -ForegroundColor Cyan

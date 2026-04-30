@@ -7,10 +7,9 @@
     the .xlsx via Excel COM, normalizes each row, and writes a CSV whose
     headers match the field aliases recognized by /settings/import.
 
-    Three columns deliberately come out blank because the spreadsheet
+    Two columns deliberately come out blank because the spreadsheet
     doesn't have them — the user fills these in Excel before importing:
       - product   (System / Spray)
-      - sqft      (square footage)
       - lastServiceDate for rows that haven't had their first annual yet
 
 .EXAMPLE
@@ -229,7 +228,6 @@ try {
             state            = $parsed.state
             zip              = $parsed.zip
             product          = ''       # ← FILL: System / Spray
-            sqft             = ''       # ← FILL: numeric square footage
             contractValue    = $contractValue
             lastServiceDate  = $lastServiceDate
             customerEmail    = ([string]$emailRaw).Trim()
@@ -253,7 +251,6 @@ $rows | Export-Csv -Path $OutputPath -NoTypeInformation -Encoding UTF8
 # ---------- Report ---------------------------------------------------------
 
 $missingProduct = ($rows | Where-Object { -not $_.product }).Count
-$missingSqft    = ($rows | Where-Object { -not $_.sqft }).Count
 $missingDate    = ($rows | Where-Object { -not $_.lastServiceDate }).Count
 $missingCity    = ($rows | Where-Object { -not $_.city }).Count
 $missingState   = ($rows | Where-Object { -not $_.state }).Count
@@ -270,7 +267,6 @@ Write-Host "      -pending first service : $pendingCount"
 Write-Host ""
 Write-Host "  Manual fill needed (open the CSV in Excel):" -ForegroundColor Yellow
 Write-Host "    product (System / Spray)  : $missingProduct rows blank"
-Write-Host "    sqft                      : $missingSqft rows blank"
 Write-Host "    lastServiceDate           : $missingDate rows blank (no install/service date)"
 Write-Host ""
 if ($missingCity -gt 0 -or $missingState -gt 0) {
@@ -282,6 +278,6 @@ if ($missingCity -gt 0 -or $missingState -gt 0) {
 }
 Write-Host "  Next steps:" -ForegroundColor Cyan
 Write-Host "    1. Open $OutputPath in Excel"
-Write-Host "    2. Fill the blank product / sqft / lastServiceDate cells"
+Write-Host "    2. Fill the blank product / lastServiceDate cells"
 Write-Host "    3. Save as CSV (UTF-8)"
 Write-Host "    4. Upload at /settings/import in the app"

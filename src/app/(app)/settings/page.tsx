@@ -16,7 +16,7 @@ const LINKS: SettingLink[] = [
     icon: Upload,
     title: "Import from CSV",
     description:
-      "Bulk-load existing maintenance jobs. Upload a CSV with customer, property, product, sqft, and last-service date.",
+      "Bulk-load existing maintenance jobs. Upload a CSV with customer, property, product, and last-service date.",
     status: "available",
   },
   {

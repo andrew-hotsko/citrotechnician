@@ -11,7 +11,6 @@ export type ImportField =
   | "state"
   | "zip"
   | "product"
-  | "sqft"
   | "contractValue"
   | "lastServiceDate"
   | "intervalMonths"
@@ -33,7 +32,6 @@ export const FIELD_META: Record<
   state:            { label: "State", required: false, hint: "default CA" },
   zip:              { label: "ZIP", required: false },
   product:          { label: "Product", required: true, hint: "System / Spray" },
-  sqft:             { label: "Sq ft", required: true },
   contractValue:    { label: "Contract value", required: false, hint: "USD, optional" },
   lastServiceDate:  { label: "Last service date", required: true, hint: "ISO or MM/DD/YYYY" },
   intervalMonths:   { label: "Interval (months)", required: false, hint: "default 12" },
@@ -53,7 +51,6 @@ export const FIELD_ORDER: ImportField[] = [
   "state",
   "zip",
   "product",
-  "sqft",
   "contractValue",
   "lastServiceDate",
   "intervalMonths",
@@ -79,7 +76,6 @@ const ALIASES: Record<ImportField, string[]> = {
   state:           ["state", "st"],
   zip:             ["zip", "zipcode", "postalcode", "postcode"],
   product:         ["product", "productcode", "sku", "mfb"],
-  sqft:            ["sqft", "squarefeet", "area", "squarefootage", "size"],
   contractValue:   ["contractvalue", "value", "contract", "price", "amount", "usd"],
   lastServiceDate: ["lastservicedate", "lastservice", "serviceddate", "lastapplication", "applieddate"],
   intervalMonths:  ["interval", "intervalmonths", "cadence", "frequency"],
@@ -152,12 +148,6 @@ export function parseRegion(
   return null;
 }
 
-export function parseSqft(raw: string): number | null {
-  const clean = raw.replace(/[,\s]/g, "");
-  const n = parseInt(clean, 10);
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
-
 export function parseMoney(raw: string): number | null {
   if (!raw) return null;
   const clean = raw.replace(/[$,\s]/g, "");
@@ -204,7 +194,6 @@ export type ParsedRow = {
     state: string;
     zip: string;
     product: "SYSTEM" | "SPRAY";
-    sqft: number;
     contractValue: number;
     lastServiceDate: Date;
     intervalMonths: number;
@@ -265,14 +254,6 @@ export function parseRow(
     const p = parseProduct(productRaw);
     if (p) values.product = p;
     else errors.push(`Unknown product "${productRaw}" — expected MFB-31, MFB-34, or MFB-35-FM`);
-  }
-
-  // Sqft (required).
-  const sqftRaw = get("sqft");
-  if (sqftRaw) {
-    const n = parseSqft(sqftRaw);
-    if (n !== null) values.sqft = n;
-    else errors.push(`Invalid sq ft "${sqftRaw}"`);
   }
 
   // Contract value (optional).
