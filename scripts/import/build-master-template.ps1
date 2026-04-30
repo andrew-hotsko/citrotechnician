@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Build a polished Excel template seeded from "System Master List.xlsx".
 
@@ -291,7 +291,22 @@ $cols = @(
     @{ field = 'installDone';     header = 'Install done?';       req = $false; width = 10; format = '@';  helper = $true }
     @{ field = 'verifiedBy';      header = 'Verified by';         req = $false; width = 12; format = '@';  helper = $true }
     @{ field = 'verifiedDate';    header = 'Verified date';       req = $false; width = 12; format = 'yyyy-mm-dd'; helper = $true }
+    @{ field = 'annualsRemaining';header = 'Annuals remaining';   req = $false; width = 10; format = '0';          helper = $true; formula = $true }
 )
+
+# Per-header comment text. Hover the small triangle in the header to read.
+$headerComments = @{
+    'lastServiceDate'  = "The date of the most recent COMPLETED visit at this property — install or last annual.`r`n`r`nLeave blank if the install hasn't happened yet (we'll fill it once it does)."
+    'product'          = "System or Spray. Required for every row."
+    'sqft'             = "Square footage being treated. Required."
+    'cycleIndex'       = "What's been done at this property so far?`r`n`r`n  0 = install only (or install pending)`r`n  1 = Year 1 annual is the most recent`r`n  2 = Year 2 annual is the most recent`r`n  3 = Year 3, etc.`r`n`r`nDefault is 0. Bump only if the property is mid-agreement and at least one annual has happened. See the Instructions tab for the decision tree."
+    'cyclesPlanned'    = "How many annual inspections did the customer sign up for in their contract?`r`n`r`n  2 = standard 2-year (default)`r`n  1 = 1-year`r`n  3 = 3-year`r`n`r`nThe source 'Terms' column was mapped automatically: '2 year' -> 2."
+    'sourceRow'        = "The row number in the original 'System Master List.xlsx'.`r`n`r`nUse it to cross-check against the source spreadsheet during verification. Not imported — for your reference only."
+    'installDone'      = "Y/N copied from the source 'Completed?' column.`r`n`r`nIf N and Last service date is blank, the install hasn't happened yet — that row can't import until you fill the install date."
+    'verifiedBy'       = "Your initials when the row has been audited and is ready to import."
+    'verifiedDate'     = "The date you signed off on this row."
+    'annualsRemaining' = "Auto-calculated: Cycles planned minus Cycle index.`r`n`r`nHow many more annual inspections the customer is owed under the agreement. 0 means the agreement is complete."
+}
 
 try {
     $bk = $xl.Workbooks.Add()
@@ -330,41 +345,97 @@ try {
         @{ text = "Source: $InputPath"; style = 'meta' }
         @{ text = "Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm')"; style = 'meta' }
         @{ text = ''; style = 'spacer' }
-        @{ text = 'Workflow'; style = 'h2' }
-        @{ text = '1. Open the "Data" tab. Each row = one job/property/customer.'; style = 'body' }
-        @{ text = '2. Verify every row. Yellow cells are blank in the source and need filling before import.'; style = 'body' }
-        @{ text = '3. Required columns (marked * in the header): Customer, Property, Address, City, Product, Sq ft, Last service date.'; style = 'body' }
-        @{ text = '4. When a row is fully checked, write your initials in "Verified by" and the date in "Verified date".'; style = 'body' }
-        @{ text = '5. When everything is verified, save just the Data sheet as CSV (File - Save As - CSV UTF-8).'; style = 'body' }
-        @{ text = '6. Upload the CSV at /settings/import in the app. The dry-run preview catches any remaining issues before commit.'; style = 'body' }
+
+        @{ text = 'What this is'; style = 'h2' }
+        @{ text = 'This is the working copy of the System Master List, reformatted to match what CitroTechnician needs to import. Your job: walk every row, fill the gaps, mark each one verified. When the team is done, we save it as CSV and load it into the app — that becomes our system of record going forward.'; style = 'body' }
         @{ text = ''; style = 'spacer' }
-        @{ text = 'Column reference'; style = 'h2' }
-        @{ text = 'Customer * — full customer/account name. Multiple properties for the same customer share the name verbatim.'; style = 'body' }
-        @{ text = 'Property * — short label for the site. Defaults to the street address; override if the customer uses a name (e.g. "Personal home", "Spec home", "Vineyard").'; style = 'body' }
-        @{ text = 'Address * — street only ("1234 Main St"), no city/state/zip.'; style = 'body' }
-        @{ text = 'City * — city name only.'; style = 'body' }
-        @{ text = 'State — two-letter code. Defaults to CA.'; style = 'body' }
-        @{ text = 'ZIP — 5- or 9-digit. Region is auto-inferred from ZIP if Region is left blank.'; style = 'body' }
-        @{ text = 'Product * — System or Spray. Dropdown enforced.'; style = 'body' }
-        @{ text = 'Sq ft * — number, no commas needed. The square footage being treated.'; style = 'body' }
-        @{ text = 'Contract value — USD, optional. Leave blank for waived/unknown.'; style = 'body' }
-        @{ text = 'Last service date * — ISO (yyyy-mm-dd). For brand-new installs that have not happened yet, leave blank — those rows cannot import until the install date is entered.'; style = 'body' }
-        @{ text = 'Interval (months) — maintenance cadence. Default 12.'; style = 'body' }
-        @{ text = 'Customer email / Customer phone — both optional but strongly recommended. Phone is auto-formatted as (XXX) XXX-XXXX.'; style = 'body' }
-        @{ text = 'Region — NORCAL / SOCAL / OTHER. Inferred from CA ZIP3 if blank, otherwise OTHER.'; style = 'body' }
-        @{ text = 'Cycle index — 0 = the install itself; 1 = first annual (Year 1); 2 = Year 2; etc. Use this to mark where the property sits in its maintenance cycle. Default 0.'; style = 'body' }
-        @{ text = 'Cycles planned — total annuals after the install, per the customer agreement. Default 2 (standard 2-year). Source "Terms" column maps directly: "2 year" -> 2.'; style = 'body' }
-        @{ text = 'Office notes — free-form internal notes. Source "Notes" + "Maintenance Details" are merged here.'; style = 'body' }
+
+        @{ text = 'Before you start'; style = 'h2' }
+        @{ text = '* The "Data" tab is where you work. Each row = one job at one property for one customer. If a customer has 3 properties, expect 3 rows.'; style = 'body' }
+        @{ text = '* Headers with a * are required. Cells highlighted YELLOW are blank in the source and must be filled before that row can import.'; style = 'body' }
+        @{ text = '* Do NOT rename column headers — the importer matches by name.'; style = 'body' }
+        @{ text = '* Hover any header (look for a small red triangle in the corner) for a quick tooltip on what to put in that column.'; style = 'body' }
+        @{ text = '* Save your work often.'; style = 'body' }
         @{ text = ''; style = 'spacer' }
-        @{ text = 'Helper columns (not imported)'; style = 'h2' }
-        @{ text = 'Source row # — the row number in the original "System Master List.xlsx", for cross-referencing.'; style = 'body' }
-        @{ text = 'Install done? — Y/N copied from the source "Completed?" column. If N and Last service date is blank, the install has not happened yet — fill the date once it does.'; style = 'body' }
-        @{ text = 'Verified by / Verified date — for the team to mark when a row has been audited.'; style = 'body' }
+
+        @{ text = 'The two questions you answer for every row'; style = 'h2' }
+        @{ text = 'Q1.  What has been done at this property so far?  --> fills "Last service date" and "Cycle index"'; style = 'body' }
+        @{ text = 'Q2.  How many annual inspections did the customer sign up for?  --> fills "Cycles planned" (almost always 2)'; style = 'body' }
         @{ text = ''; style = 'spacer' }
-        @{ text = 'Tips'; style = 'h2' }
-        @{ text = '* Headers must NOT be renamed — the importer matches by label.'; style = 'body' }
-        @{ text = '* Helper columns (Source row, Install done, Verified by, Verified date) are safe to keep when saving CSV — the importer ignores unknown column names.'; style = 'body' }
-        @{ text = '* If a cell loses its dropdown after editing, it is fine — the importer validates the value regardless.'; style = 'body' }
+
+        @{ text = 'Decision tree — use this for every row'; style = 'h2' }
+        @{ text = 'Has the install happened yet?'; style = 'body' }
+        @{ text = '   NO  -->  install pending'; style = 'mono' }
+        @{ text = '              Last service date  = blank (fill once install happens)'; style = 'mono' }
+        @{ text = '              Cycle index        = 0'; style = 'mono' }
+        @{ text = '              Install done?      = N'; style = 'mono' }
+        @{ text = ''; style = 'spacer' }
+        @{ text = '   YES -->  install is done'; style = 'mono' }
+        @{ text = '              Install done?      = Y'; style = 'mono' }
+        @{ text = '              Last service date  = the date of the most recent visit (see below)'; style = 'mono' }
+        @{ text = ''; style = 'spacer' }
+        @{ text = '              Then: have any annual inspections happened since the install?'; style = 'mono' }
+        @{ text = '                 No annuals yet                  -->  Cycle index = 0  (Last service date = install date)'; style = 'mono' }
+        @{ text = '                 Year 1 done                     -->  Cycle index = 1  (Last service date = Y1 date)'; style = 'mono' }
+        @{ text = '                 Year 1 + Year 2 done            -->  Cycle index = 2  (Last service date = Y2 date)'; style = 'mono' }
+        @{ text = '                 Year 1 + Y2 + Y3 done           -->  Cycle index = 3  (etc.)'; style = 'mono' }
+        @{ text = ''; style = 'spacer' }
+        @{ text = 'Cycles planned  =  total annual inspections in the customer''s contract'; style = 'body' }
+        @{ text = '   2 year contract (standard, default)  -->  2'; style = 'mono' }
+        @{ text = '   1 year contract                      -->  1'; style = 'mono' }
+        @{ text = '   3 year contract                      -->  3'; style = 'mono' }
+        @{ text = ''; style = 'spacer' }
+
+        @{ text = 'Worked examples'; style = 'h2' }
+        @{ text = 'Example 1 — Brand new customer, install scheduled but not done yet'; style = 'body' }
+        @{ text = '   Last service date = (blank)     Cycle index = 0     Cycles planned = 2     Install done? = N     Annuals remaining = 2'; style = 'mono' }
+        @{ text = ''; style = 'spacer' }
+        @{ text = 'Example 2 — Install done in March 2026, no annuals yet'; style = 'body' }
+        @{ text = '   Last service date = 2026-03-15   Cycle index = 0     Cycles planned = 2     Install done? = Y     Annuals remaining = 2'; style = 'mono' }
+        @{ text = ''; style = 'spacer' }
+        @{ text = 'Example 3 — Install done in 2024, Year 1 inspection done in April 2025'; style = 'body' }
+        @{ text = '   Last service date = 2025-04-10   Cycle index = 1     Cycles planned = 2     Install done? = Y     Annuals remaining = 1'; style = 'mono' }
+        @{ text = ''; style = 'spacer' }
+        @{ text = 'Example 4 — Install + both annual inspections done; agreement complete'; style = 'body' }
+        @{ text = '   Last service date = 2026-02-01   Cycle index = 2     Cycles planned = 2     Install done? = Y     Annuals remaining = 0'; style = 'mono' }
+        @{ text = ''; style = 'spacer' }
+
+        @{ text = 'Required columns (marked * in the header)'; style = 'h2' }
+        @{ text = 'Customer *           — full account name. If a customer has multiple properties, they share this name verbatim, character for character.'; style = 'body' }
+        @{ text = 'Property *           — short label for the site. Defaults to the street address. Override only if the customer uses a name ("Personal home", "Vineyard", "Spec home").'; style = 'body' }
+        @{ text = 'Address *            — street only ("1234 Main St"). No city/state/zip in this cell.'; style = 'body' }
+        @{ text = 'City *               — city name only.'; style = 'body' }
+        @{ text = 'Product *            — System or Spray. Use the dropdown.'; style = 'body' }
+        @{ text = 'Sq ft *              — square footage being treated. Numeric, no commas needed.'; style = 'body' }
+        @{ text = 'Last service date *  — most recent COMPLETED visit (install or last annual). Leave blank for install-pending rows.'; style = 'body' }
+        @{ text = ''; style = 'spacer' }
+
+        @{ text = 'Optional columns'; style = 'h2' }
+        @{ text = 'State              — two-letter code. Defaults to CA.'; style = 'body' }
+        @{ text = 'ZIP                — 5- or 9-digit. Used to auto-infer Region if blank.'; style = 'body' }
+        @{ text = 'Contract value     — USD. Leave blank for waived/unknown.'; style = 'body' }
+        @{ text = 'Interval (months)  — maintenance cadence. Default 12.'; style = 'body' }
+        @{ text = 'Customer email     — strongly recommended.'; style = 'body' }
+        @{ text = 'Customer phone     — strongly recommended. Auto-formatted (XXX) XXX-XXXX.'; style = 'body' }
+        @{ text = 'Region             — NORCAL / SOCAL / OTHER. Auto-inferred from CA ZIP if blank.'; style = 'body' }
+        @{ text = 'Cycle index        — see decision tree above. Default 0.'; style = 'body' }
+        @{ text = 'Cycles planned     — see decision tree above. Default 2.'; style = 'body' }
+        @{ text = 'Office notes       — free-form internal notes. Source "Notes" + "Maintenance Details" merged here. Edit freely.'; style = 'body' }
+        @{ text = ''; style = 'spacer' }
+
+        @{ text = 'Helper columns (not imported — for your use only)'; style = 'h2' }
+        @{ text = 'Source row #       — the row number in the original "System Master List.xlsx". Use it to cross-check against the source spreadsheet while you''re verifying.'; style = 'body' }
+        @{ text = 'Install done?      — Y/N copied from the source "Completed?" column. Quick filter for "what installs are still pending".'; style = 'body' }
+        @{ text = 'Verified by        — your initials when you''ve checked the row.'; style = 'body' }
+        @{ text = 'Verified date      — date you signed off.'; style = 'body' }
+        @{ text = 'Annuals remaining  — auto-computed: Cycles planned minus Cycle index. Tells you at a glance how many more annual inspections the customer is owed.'; style = 'body' }
+        @{ text = ''; style = 'spacer' }
+
+        @{ text = 'When the list is fully verified'; style = 'h2' }
+        @{ text = '1. Click the Data tab. File -> Save As -> CSV UTF-8 (Excel will warn it can only save one sheet — that''s fine, click OK).'; style = 'body' }
+        @{ text = '2. Open CitroTechnician -> Settings -> Import.'; style = 'body' }
+        @{ text = '3. Upload the CSV. The dry-run preview catches anything still off before any data is written.'; style = 'body' }
+        @{ text = '4. Once the preview is green, click Import. Job records get created and we start using CitroTechnician for real.'; style = 'body' }
     )
 
     $r = 1
@@ -373,14 +444,15 @@ try {
         $cell.Value2 = $e.text
         switch ($e.style) {
             'title' { $cell.Font.Size = 18; $cell.Font.Bold = $true; $cell.Font.Color = $NAVY; $insSheet.Rows.Item($r).RowHeight = 30 }
-            'h2'    { $cell.Font.Size = 13; $cell.Font.Bold = $true; $cell.Font.Color = $NAVY; $insSheet.Rows.Item($r).RowHeight = 22 }
+            'h2'    { $cell.Font.Size = 13; $cell.Font.Bold = $true; $cell.Font.Color = $NAVY; $insSheet.Rows.Item($r).RowHeight = 24 }
             'meta'  { $cell.Font.Size = 10; $cell.Font.Italic = $true; $cell.Font.Color = $GRAY_HEADER }
             'body'  { $cell.Font.Size = 11; $cell.WrapText = $true; $insSheet.Rows.Item($r).RowHeight = 18 }
+            'mono'  { $cell.Font.Size = 10; $cell.Font.Name = 'Consolas'; $cell.Font.Color = $GRAY_HEADER }
             'spacer'{ }
         }
         $r++
     }
-    $insSheet.Columns.Item(1).ColumnWidth = 110
+    $insSheet.Columns.Item(1).ColumnWidth = 130
     $insSheet.Tab.Color = $NAVY_LIGHT
 
     # ----- Sheet: Data -----
@@ -410,6 +482,13 @@ try {
         $hcell.WrapText = $true
         $dataSheet.Columns.Item($colIdx).ColumnWidth = $col.width
         $dataSheet.Columns.Item($colIdx).NumberFormat = $col.format
+
+        # Hover-comment on the header for the team's quick reference.
+        if ($headerComments.ContainsKey($col.field)) {
+            try { $hcell.ClearComments() } catch { }
+            $cmt = $hcell.AddComment($headerComments[$col.field])
+            $cmt.Shape.TextFrame.AutoSize = $true
+        }
     }
     $dataSheet.Rows.Item(1).RowHeight = 36
     $dataSheet.Application.ActiveWindow.SplitRow = 1
@@ -429,6 +508,26 @@ try {
                 $val = $prop.Value
                 if ($null -eq $val) { continue }
                 Set-CellValue -Cell $dataSheet.Cells.Item($excelRow, $c + 1) -Value $val
+            }
+        }
+
+        # Formula-driven helper columns (e.g. Annuals remaining).
+        $cycleIdxLetter = $null
+        $cyclesPlannedLetter = $null
+        for ($k = 0; $k -lt $cols.Count; $k++) {
+            $cl = ($dataSheet.Cells.Item(1, $k + 1).Address(0,0) -replace '\d','')
+            if ($cols[$k].field -eq 'cycleIndex')    { $cycleIdxLetter = $cl }
+            if ($cols[$k].field -eq 'cyclesPlanned') { $cyclesPlannedLetter = $cl }
+        }
+        for ($c = 0; $c -lt $cols.Count; $c++) {
+            if (-not $cols[$c].formula) { continue }
+            $colIdx = $c + 1
+            for ($i = 0; $i -lt $rowCount; $i++) {
+                $excelRow = $i + 2
+                if ($cols[$c].field -eq 'annualsRemaining') {
+                    $f = "=IF(ISBLANK(`$$cyclesPlannedLetter$excelRow),`"`",MAX(0,`$$cyclesPlannedLetter$excelRow-`$$cycleIdxLetter$excelRow))"
+                    $dataSheet.Cells.Item($excelRow, $colIdx).Formula = $f
+                }
             }
         }
 
