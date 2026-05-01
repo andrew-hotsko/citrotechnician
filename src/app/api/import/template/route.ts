@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { FIELD_META, FIELD_ORDER } from "@/lib/csv-import";
 
+// Sample rows must align with FIELD_ORDER:
+// customerName, propertyName, address, city, state, zip, product,
+// contractValue, installDate, lastServiceDate, intervalMonths,
+// customerEmail, customerPhone, region, cycleIndex, cyclesPlanned, officeNotes
 const SAMPLE_ROWS = [
+  // Cycle-0 row: install just completed, no annual yet.
   [
     "Redwood Estates HOA",
     "Redwood Estates HOA",
@@ -12,11 +17,16 @@ const SAMPLE_ROWS = [
     "System",
     "18200",
     "2025-04-25",
+    "",
     "12",
     "contact@redwoodestates.example.com",
     "+1-555-0100",
     "NORCAL",
+    "0",
+    "2",
+    "",
   ],
+  // Cycle-2 row: install 2024-05-12, Year 1 + Year 2 annuals both done.
   [
     "La Jolla Shores Owner",
     "La Jolla Shores Villa",
@@ -26,11 +36,15 @@ const SAMPLE_ROWS = [
     "92037",
     "Spray",
     "9100",
-    "2025-05-12",
+    "2024-05-12",
+    "2026-04-30",
     "12",
     "",
     "",
     "SOCAL",
+    "2",
+    "2",
+    "",
   ],
 ];
 

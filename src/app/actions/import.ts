@@ -139,7 +139,6 @@ export async function commitImport(
       !v.address ||
       !v.city ||
       !v.product ||
-      !v.lastServiceDate ||
       typeof v.latitude !== "number" ||
       typeof v.longitude !== "number"
     ) {
@@ -188,10 +187,21 @@ export async function commitImport(
           include: { items: { orderBy: { order: "asc" } } },
         });
 
-        // Compute the next-maintenance due date.
+        // Compute the next-maintenance due date. For install-pending rows
+        // (no lastServiceDate), use a 90-day placeholder so the row lands
+        // in UPCOMING with a sensible-looking date the team can edit.
         const interval = v.intervalMonths ?? 12;
-        const dueDate = new Date(v.lastServiceDate!);
-        dueDate.setMonth(dueDate.getMonth() + interval);
+        const dueDate = v.lastServiceDate
+          ? (() => {
+              const d = new Date(v.lastServiceDate);
+              d.setMonth(d.getMonth() + interval);
+              return d;
+            })()
+          : (() => {
+              const d = new Date();
+              d.setDate(d.getDate() + 90);
+              return d;
+            })();
 
         const jobNumber = await nextJobNumber(tx);
 
@@ -213,7 +223,7 @@ export async function commitImport(
             type: csvCycleIndex === 0 ? "INITIAL_APPLICATION" : "MAINTENANCE",
             product: v.product!,
             contractValue: v.contractValue,
-            lastServiceDate: v.lastServiceDate,
+            lastServiceDate: v.lastServiceDate ?? undefined,
             dueDate,
             maintenanceIntervalMonths: interval,
             cycleIndex: csvCycleIndex,

@@ -12,6 +12,7 @@ export type ImportField =
   | "zip"
   | "product"
   | "contractValue"
+  | "installDate"
   | "lastServiceDate"
   | "intervalMonths"
   | "customerEmail"
@@ -31,9 +32,10 @@ export const FIELD_META: Record<
   city:             { label: "City", required: true },
   state:            { label: "State", required: false, hint: "default CA" },
   zip:              { label: "ZIP", required: false },
-  product:          { label: "Product", required: true, hint: "System / Spray" },
+  product:          { label: "Product", required: false, hint: "System / Spray (default System)" },
   contractValue:    { label: "Contract value", required: false, hint: "USD, optional" },
-  lastServiceDate:  { label: "Last service date", required: true, hint: "ISO or MM/DD/YYYY" },
+  installDate:      { label: "Install date", required: false, hint: "Date the initial application was completed" },
+  lastServiceDate:  { label: "Last service date", required: false, hint: "Date of most recent annual; blank for install-pending" },
   intervalMonths:   { label: "Interval (months)", required: false, hint: "default 12" },
   customerEmail:    { label: "Customer email", required: false },
   customerPhone:    { label: "Customer phone", required: false },
@@ -52,6 +54,7 @@ export const FIELD_ORDER: ImportField[] = [
   "zip",
   "product",
   "contractValue",
+  "installDate",
   "lastServiceDate",
   "intervalMonths",
   "customerEmail",
@@ -77,7 +80,8 @@ const ALIASES: Record<ImportField, string[]> = {
   zip:             ["zip", "zipcode", "postalcode", "postcode"],
   product:         ["product", "productcode", "sku", "mfb"],
   contractValue:   ["contractvalue", "value", "contract", "price", "amount", "usd"],
-  lastServiceDate: ["lastservicedate", "lastservice", "serviceddate", "lastapplication", "applieddate"],
+  installDate:     ["installdate", "install", "installationdate", "initialapplication", "initialapplicationdate"],
+  lastServiceDate: ["lastservicedate", "lastservice", "serviceddate", "lastapplication", "applieddate", "lastannual", "lastinspection"],
   intervalMonths:  ["interval", "intervalmonths", "cadence", "frequency"],
   customerEmail:   ["email", "customeremail", "clientemail"],
   customerPhone:   ["phone", "customerphone", "clientphone", "tel", "telephone"],
@@ -195,6 +199,7 @@ export type ParsedRow = {
     zip: string;
     product: "SYSTEM" | "SPRAY";
     contractValue: number;
+    installDate: Date;
     lastServiceDate: Date;
     intervalMonths: number;
     customerEmail: string;
@@ -248,12 +253,14 @@ export function parseRow(
   const zipRaw = get("zip");
   if (zipRaw) values.zip = zipRaw;
 
-  // Product (required).
+  // Product (optional, default SYSTEM).
   const productRaw = get("product");
   if (productRaw) {
     const p = parseProduct(productRaw);
     if (p) values.product = p;
-    else errors.push(`Unknown product "${productRaw}" — expected MFB-31, MFB-34, or MFB-35-FM`);
+    else errors.push(`Unknown product "${productRaw}" — expected System or Spray`);
+  } else {
+    values.product = "SYSTEM";
   }
 
   // Contract value (optional).
@@ -264,7 +271,18 @@ export function parseRow(
     else errors.push(`Invalid contract value "${valueRaw}"`);
   }
 
-  // Last service date (required).
+  // Install date (optional). The date the initial application was completed.
+  // Used as the effective last-service date for cycle-0 rows when
+  // "Last service date" is empty.
+  const installDateRaw = get("installDate");
+  if (installDateRaw) {
+    const d = parseDate(installDateRaw);
+    if (d) values.installDate = d;
+    else errors.push(`Unparseable install date "${installDateRaw}"`);
+  }
+
+  // Last service date (optional). For cycle-0 rows where this is blank
+  // we fall back to installDate after cycleIndex is parsed below.
   const dateRaw = get("lastServiceDate");
   if (dateRaw) {
     const d = parseDate(dateRaw);
@@ -318,6 +336,17 @@ export function parseRow(
     values.cyclesPlanned < values.cycleIndex
   ) {
     values.cyclesPlanned = values.cycleIndex;
+  }
+
+  // For cycle-0 rows (this row IS the install) where the team only filled
+  // "Install date" and not "Last service date", treat installDate as the
+  // effective lastServiceDate so the importer can compute dueDate.
+  if (
+    !values.lastServiceDate &&
+    values.installDate &&
+    values.cycleIndex === 0
+  ) {
+    values.lastServiceDate = values.installDate;
   }
 
   // Required-field check.

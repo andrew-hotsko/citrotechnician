@@ -588,13 +588,23 @@ function DropZone({
         </span>
         <div className="flex items-center gap-3">
           <a
+            href="/api/jobs/export-xlsx"
+            download
+            className="inline-flex items-center gap-1 font-medium text-neutral-700 hover:text-neutral-900"
+            title="Download the master spreadsheet with Install / Year 1 / Year 2 / Year 3 inspection dates per property."
+          >
+            <Download className="h-3 w-3" />
+            Download master (Excel)
+          </a>
+          <span className="h-3 w-px bg-neutral-200" />
+          <a
             href="/api/jobs/export"
             download
             className="inline-flex items-center gap-1 font-medium text-neutral-700 hover:text-neutral-900"
             title="Download every active job as CSV — useful as a backup or for spreadsheet work."
           >
             <Download className="h-3 w-3" />
-            Export all jobs (backup)
+            Export jobs (CSV)
           </a>
           <span className="h-3 w-px bg-neutral-200" />
           <a
@@ -603,7 +613,7 @@ function DropZone({
             className="inline-flex items-center gap-1 font-medium text-neutral-700 hover:text-neutral-900"
           >
             <Download className="h-3 w-3" />
-            Download template
+            Blank template (CSV)
           </a>
         </div>
       </div>
